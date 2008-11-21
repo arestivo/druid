@@ -8,7 +8,7 @@ import java.util.Map;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 
-import com.feup.contribution.druid.ContracePlugin;
+import com.feup.contribution.druid.DruidPlugin;
 
 public class SharedImages {
 	private static Map<ImageDescriptor, Image> imageCache = new HashMap<ImageDescriptor, Image>(11);
@@ -27,7 +27,7 @@ public class SharedImages {
 	public static ImageDescriptor getImageDescriptor(String name) {
 		String iconPath = "icons/";
 		try {
-			URL installURL = ContracePlugin.getPlugin().getDescriptor().getInstallURL();
+			URL installURL = DruidPlugin.getPlugin().getDescriptor().getInstallURL();
 			URL url = new URL(installURL, iconPath + name);
 			return ImageDescriptor.createFromURL(url);
 		} catch (MalformedURLException e) {

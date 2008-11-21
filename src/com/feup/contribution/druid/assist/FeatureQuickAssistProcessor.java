@@ -8,14 +8,14 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
 import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 
-import com.feup.contribution.druid.builder.ContraceBuilder;
+import com.feup.contribution.druid.builder.DruidBuilder;
 
 public class FeatureQuickAssistProcessor implements IQuickAssistProcessor{
 
 	public IJavaCompletionProposal[] getAssists(IInvocationContext context,
 			IProblemLocation[] locations) throws CoreException {
 		IJavaCompletionProposal[] proposals = new IJavaCompletionProposal[1];
-		IMarker[] markers = context.getCompilationUnit().getResource().findMarkers(ContraceBuilder.NO_ANNOTATION_MARKER, true, IResource.DEPTH_INFINITE);
+		IMarker[] markers = context.getCompilationUnit().getResource().findMarkers(DruidBuilder.NO_ANNOTATION_MARKER, true, IResource.DEPTH_INFINITE);
 		for (int i = 0; i < markers.length; i++) {
 			IMarker marker = markers[i];
 			int ims = (int) marker.getAttribute(IMarker.CHAR_START, -1);
@@ -30,7 +30,7 @@ public class FeatureQuickAssistProcessor implements IQuickAssistProcessor{
 	}
 
 	public boolean hasAssists(IInvocationContext context) throws CoreException {
-		IMarker[] markers = context.getCompilationUnit().getResource().findMarkers(ContraceBuilder.NO_ANNOTATION_MARKER, true, IResource.DEPTH_INFINITE);
+		IMarker[] markers = context.getCompilationUnit().getResource().findMarkers(DruidBuilder.NO_ANNOTATION_MARKER, true, IResource.DEPTH_INFINITE);
 		for (int i = 0; i < markers.length; i++) {
 			IMarker marker = markers[i];
 			int ims = (int) marker.getAttribute(IMarker.CHAR_START, -1);
