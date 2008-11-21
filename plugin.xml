@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+ 
+  <extension point="org.eclipse.ui.actionSets">
+  	<actionSet
+  	  id="com.feup.contribution.druid.actionset"
+  	  label="Druid">
+  	  <action
+  	    id="com.feup.contribution.druid.action"
+  	    label="Druid"
+  	    toolbarPath="DruidGroup"
+  	    class="com.feup.contribution.druid.action.DruidAction"
+  	    >
+  	  </action>
+	</actionSet>
+  </extension>
+  
+  <extension point="org.eclipse.core.resources.natures" id="druidnature" name="Druid Nature">
+  	<runtime>
+    	<run class="com.feup.contribution.druid.nature.DruidNature"/>
+  	</runtime>
+  	<requires-nature id="org.eclipse.jdt.core.javanature"/>
+  	<builder id="com.feup.contribution.druid.druidbuilder"/>
+  </extension>
+  
+  
+  <extension point="org.eclipse.core.resources.builders" id="druidbuilder" name="Druid Builder">
+  	<builder>
+    	<run class="com.feup.contribution.druid.builder.DruidBuilder"/>
+  	</builder>
+  </extension>
+  
+  <extension point="org.eclipse.ui.views">
+  	<view
+   		id="com.feup.contribution.druid.view"
+   		name="Druid"
+   		class="com.feup.contribution.druid.view.DruidView">
+  	</view>
+  </extension>
+  
+  <extension point="org.eclipse.ui.propertyPages">
+  <page
+    id="com.feup.contribution.druid.druidproperty"
+    name="Druid"
+    objectClass="org.eclipse.core.resources.IProject"
+	adaptable="true"
+    class="com.feup.contribution.druid.property.DruidPropertyPage">
+    <filter name="nature" value="org.eclipse.jdt.core.javanature"/>
+  </page>
+</extension>
+  
+  <extension
+    id="noAnnotationWarning"
+    name="No Feature Annotation"
+    point="org.eclipse.core.resources.markers">
+    <super
+      type="org.eclipse.core.resources.problemmarker">
+    </super>
+    <persistent
+      value="true">
+    </persistent>
+  </extension>
+
+  <extension
+    id="undefinedFeature"
+    name="Undefined Feature"
+    point="org.eclipse.core.resources.markers">
+    <super
+      type="org.eclipse.core.resources.problemmarker">
+    </super>
+    <persistent
+      value="true">
+    </persistent>
+  </extension>
+  
+  <extension point="org.eclipse.jdt.ui.quickAssistProcessors">
+	<quickAssistProcessor 	id="FeatureQuickAssistProcessor"
+							name="Feature Quick Assist Processor"
+							class="com.feup.contribution.druid.assist.FeatureQuickAssistProcessor">
+	</quickAssistProcessor>
+  </extension>
+    
+  <extension point="org.eclipse.jdt.core.classpathContainerInitializer">
+      <classpathContainerInitializer
+            id="DRUID_CONTAINER"
+            class="com.feup.contribution.druid.container.DruidClasspathContainerInitializer"/>
+  </extension>
+</plugin>
