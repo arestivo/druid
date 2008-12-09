@@ -1,0 +1,3 @@
+.h2 drUID - Unexpected Interaction Detector
+
+drUID is an eclipse plugin created during the course of my PhD. 
