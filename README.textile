@@ -1,3 +1,5 @@
 h2. drUID - Unexpected Interaction Detector
 
-drUID is an eclipse plugin created during the course of my PhD. 
+drUID is an eclipse plugin that is being developed during the course of my 
+PhD. drUID will allow AspectJ developers to easily detect interactions 
+between aspects.
