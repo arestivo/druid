@@ -6,5 +6,5 @@ between aspects.
 
 h3. Some papers I published on the subject:
 
-* "Disciplined Composition of Aspects using Tests" André Restivo, Ademar Aguiar, Linking Aspect Technology and Evolution (LATE'08), Brussels, April 2008
-* "Towards Detecting and Solving Aspect Conflicts and Interferences Using Unit Tests" André Restivo, Ademar Aguiar, Software Engineering Properties of Languages and Aspect Technologies (SPLAT'07), Vancouver, B.C., Canada, 2007
+* _"Disciplined Composition of Aspects using Tests"_ André Restivo, Ademar Aguiar, Linking Aspect Technology and Evolution (LATE'08), Brussels, April 2008
+* _"Towards Detecting and Solving Aspect Conflicts and Interferences Using Unit Tests"_ André Restivo, Ademar Aguiar, Software Engineering Properties of Languages and Aspect Technologies (SPLAT'07), Vancouver, B.C., Canada, 2007
