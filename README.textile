@@ -3,3 +3,8 @@ h2. drUID - Unexpected Interaction Detector
 drUID is an eclipse plugin that is being developed during the course of my 
 PhD. drUID will allow AspectJ developers to easily detect interactions 
 between aspects.
+
+Some papers I published on the subject:
+
+"Disciplined Composition of Aspects using Tests" André Restivo, Ademar Aguiar, Linking Aspect Technology and Evolution (LATE'08), Brussels, April 2008
+"Towards Detecting and Solving Aspect Conflicts and Interferences Using Unit Tests" André Restivo, Ademar Aguiar, Software Engineering Properties of Languages and Aspect Technologies (SPLAT'07), Vancouver, B.C., Canada, 2007
