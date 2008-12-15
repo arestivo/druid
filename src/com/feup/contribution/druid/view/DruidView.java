@@ -30,7 +30,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
@@ -50,7 +53,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 	
 	private Button detectButton;
 	private Label detectLabel;
-	
+		
 	@Override
 	public void setFocus() {
 	}
@@ -76,13 +79,20 @@ public class DruidView extends ViewPart implements ProjectListener{
 		dialogComposite = new Composite(parent, SWT.NONE);
 		dialogComposite.setLayout(dialogLayout);
 
-		detectLabel = new Label(dialogComposite, SWT.VERTICAL);
+		detectLabel = new Label(dialogComposite, SWT.NONE);
 		detectLabel.setText("Detect Interactions");
 
 		detectButton = new Button(dialogComposite, SWT.PUSH);
 		detectButton.setText("Execute");
 		
 		DruidPlugin.getPlugin().getProject().addProjectListener(this);
+		
+		detectButton.addListener(SWT.Selection, new Listener(){
+			@Override
+			public void handleEvent(Event evt) {
+				DruidPlugin.getPlugin().log("Executing");
+			}
+		});
 		
 		treeViewer.addDoubleClickListener(new IDoubleClickListener(){
 			public void doubleClick(DoubleClickEvent event) {
