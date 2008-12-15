@@ -25,7 +25,12 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
@@ -40,7 +45,12 @@ import com.feup.contribution.druid.listeners.ProjectListener;
 
 public class DruidView extends ViewPart implements ProjectListener{
 	private TreeViewer treeViewer;
-
+	private Composite dialogComposite;
+	private GridLayout dialogLayout;
+	
+	private Button detectButton;
+	private Label detectLabel;
+	
 	@Override
 	public void setFocus() {
 	}
@@ -48,7 +58,6 @@ public class DruidView extends ViewPart implements ProjectListener{
 	public void projectChanged(final DruidProject project) {
 		treeViewer.getTree().getDisplay().asyncExec(new Runnable(){
 			public void run() {
-				//treeViewer.refresh(project, false);
 				treeViewer.refresh();
 			}
 		});
@@ -60,6 +69,18 @@ public class DruidView extends ViewPart implements ProjectListener{
 		treeViewer.setContentProvider(new DruidContentProvider());
 		treeViewer.setLabelProvider(new DruidLabelProvider());
 		treeViewer.setInput(DruidPlugin.getPlugin().getProject());
+
+		dialogLayout = new GridLayout();
+		dialogLayout.numColumns = 2;
+		
+		dialogComposite = new Composite(parent, SWT.NONE);
+		dialogComposite.setLayout(dialogLayout);
+
+		detectLabel = new Label(dialogComposite, SWT.VERTICAL);
+		detectLabel.setText("Detect Interactions");
+
+		detectButton = new Button(dialogComposite, SWT.PUSH);
+		detectButton.setText("Execute");
 		
 		DruidPlugin.getPlugin().getProject().addProjectListener(this);
 		
