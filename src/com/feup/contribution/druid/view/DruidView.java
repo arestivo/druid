@@ -16,6 +16,8 @@
 
 package com.feup.contribution.druid.view;
 		
+import java.util.Collection;
+
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
@@ -90,7 +92,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 		detectButton.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event evt) {
-				DruidPlugin.getPlugin().log("Executing");
+				DruidPlugin.getPlugin().getProject().detectInteractions();
 			}
 		});
 		

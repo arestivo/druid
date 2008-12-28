@@ -96,4 +96,15 @@ public class DruidUnit {
 		}
 		return null;
 	}
+
+	public ArrayList<DruidUnit> getDependsOnUnit() {
+		ArrayList<DruidUnit> dependsOn = new ArrayList<DruidUnit>();
+		for (DruidFeature feature : features) {
+			Collection<DruidDependency> dependencies = feature.getDependecies();
+			for (DruidDependency druidDependency : dependencies) {
+				dependsOn.add(druidDependency.getDependee().getUnit());
+			}
+		}
+		return dependsOn;
+	}
 }

@@ -22,6 +22,7 @@ import java.util.Collection;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 
+import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.listeners.ProjectListener;
 
 public class DruidProject{
@@ -101,6 +102,13 @@ public class DruidProject{
 		if (tFeature != null) tFeature.addTests(method);
 		else return false;
 		return true;
+	}
+
+	public void detectInteractions() {
+		ArrayList<DruidComponent> components = DruidComponent.getComponents(units);
+		for (DruidComponent druidComponent : components) {
+			DruidPlugin.getPlugin().log(druidComponent.toString());
+		}
 	}
 
 }
