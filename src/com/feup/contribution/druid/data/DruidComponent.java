@@ -6,11 +6,69 @@ import java.util.Stack;
 import com.feup.contribution.druid.DruidPlugin;
 
 public class DruidComponent {
-	ArrayList<DruidUnit> componentUnits = new ArrayList<DruidUnit>();
+	private ArrayList<DruidUnit> componentUnits = new ArrayList<DruidUnit>();
+	private ArrayList<DruidComponent> dependants = new ArrayList<DruidComponent>();
+	private int indegree = 0;
+	
+	public ArrayList<DruidUnit> getUnits() {
+		return componentUnits;
+	}
+	
+	public static ArrayList<DruidComponent> getOrderedComponents(ArrayList<DruidUnit> units) {
+		ArrayList<DruidComponent> components = getComponents(units);
+		ArrayList<DruidComponent> orderedComponents = new ArrayList<DruidComponent>();
+		
+		Stack<DruidComponent> s = new Stack<DruidComponent>();
+		
+		for (DruidComponent component : components) 
+			for (DruidUnit unit : component.getUnits())
+				for (DruidUnit dependent : unit.getDependsOnUnit())
+					for (DruidComponent dComponent : components)
+						if (!component.equals(dComponent) && dComponent.contains(dependent)) component.addDependency(dComponent);		
+
+		for (DruidComponent component : components) 
+			for (DruidComponent dComponent : component.getDependents())
+				dComponent.increaseIndegree();
+
+		for (DruidComponent component : components) 
+			if (component.getIndegree() == 0)
+				s.add(component);
+	
+		while (!s.isEmpty()) {
+			DruidComponent c = s.pop();
+			orderedComponents.add(c);
+			for (DruidComponent d : c.getDependents())
+				if (d.decreaseIndegree() == 0 && !orderedComponents.contains(d)) s.add(d);
+		}
+		
+		return orderedComponents;
+	}
+	
+	private int decreaseIndegree() {
+		return --indegree;
+	}
+
+	private int getIndegree() {
+		return indegree;
+	}
+
+	private void increaseIndegree() {
+		indegree++;
+	}
+
+	private ArrayList<DruidComponent> getDependents() {
+		return dependants;
+	}
+
+	private void addDependency(DruidComponent component) {
+		dependants.add(component);
+	}
+
+	private boolean contains(DruidUnit unit) {
+		return componentUnits.contains(unit);
+	}
 
 	public static ArrayList<DruidComponent> getComponents(ArrayList<DruidUnit> units) {
-		DruidPlugin.getPlugin().log("Detecting SCC");
-		DruidPlugin.getPlugin().log("units: " + units.size());
 		int index[], lowlink[];
 		int i = 0;
 		index = new int[units.size()];
@@ -24,27 +82,23 @@ public class DruidComponent {
 		Stack<DruidUnit> s = new Stack<DruidUnit>();
 		for (int v = 0; v < units.size(); v++) {
 			if (index[v]==-1) i = dfs(units, v, i, index, lowlink, s, instack, components);
-			DruidPlugin.getPlugin().log(v + " " + components.size());
 		}	
 		return components;
 	}
 	
 	private static int dfs(ArrayList<DruidUnit> units, int v, int i, int[] index, int[] lowlink, Stack<DruidUnit> s, boolean[] instack, ArrayList<DruidComponent> components) {
-		DruidPlugin.getPlugin().log("DFS " + v);
 		index[v] = i;
 		lowlink[v] = i++;
 		s.push(units.get(v)); instack[v] = true;
 		ArrayList<DruidUnit> depends = units.get(v).getDependsOnUnit();
 		for (int e = 0; e < depends.size(); e++){
 			int w = units.indexOf(depends.get(e));
-			DruidPlugin.getPlugin().log(" e " + w);
 			if (index[w]==-1) {
 				dfs(units, w, i, index, lowlink, s, instack, components);
 				lowlink[v] = Math.min(lowlink[v], lowlink[w]);
 			} else if (instack[w]) lowlink[v] = Math.min(lowlink[v], index[w]);
 		}
 		if (lowlink[v] == index[v]) {
-			DruidPlugin.getPlugin().log("LL == I");
 			DruidComponent newComponent = new DruidComponent();
 			while (!s.empty()){
 				DruidUnit wUnit = s.pop(); instack[units.indexOf(wUnit)] = false;
@@ -53,7 +107,6 @@ public class DruidComponent {
 			}
 			components.add(newComponent);
 		}
-		DruidPlugin.getPlugin().log("DFS END " + v);
 		return i;
 	}
 

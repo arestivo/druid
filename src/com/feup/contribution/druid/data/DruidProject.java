@@ -105,7 +105,7 @@ public class DruidProject{
 	}
 
 	public void detectInteractions() {
-		ArrayList<DruidComponent> components = DruidComponent.getComponents(units);
+		ArrayList<DruidComponent> components = DruidComponent.getOrderedComponents(units);
 		for (DruidComponent druidComponent : components) {
 			DruidPlugin.getPlugin().log(druidComponent.toString());
 		}
