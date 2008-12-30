@@ -76,23 +76,23 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		delta.accept(new DeltaVisitor(dependencies, tests));
 		addDependecies(dependencies);
 		addTests(tests);
-		DruidPlugin.getPlugin().getProject(getProject().getName()).builderDone();
+		DruidPlugin.getPlugin().getProject(getProject()).builderDone();
 	}
 
 
 	private void fullBuild(IProgressMonitor monitor) throws CoreException {
 		Vector<Dependency> dependencies = new Vector<Dependency>();
 		Vector<Test> tests = new Vector<Test>();
-		DruidPlugin.getPlugin().getProject(getProject().getName()).removeAllFeatures();
+		DruidPlugin.getPlugin().getProject(getProject()).removeAllFeatures();
 		getProject().accept(new ResourceVisitor(dependencies, tests));
 		addDependecies(dependencies);
 		addTests(tests);
-		DruidPlugin.getPlugin().getProject(getProject().getName()).builderDone();
+		DruidPlugin.getPlugin().getProject(getProject()).builderDone();
 	}
 	
 	private void addTests(Vector<Test> tests) throws CoreException {
 		for (Test test : tests) {
-			if (!DruidPlugin.getPlugin().getProject(getProject().getName()).addTest(test.getUnitName(), test.getMethod(), test.getUnit(), test.getFeature())) {
+			if (!DruidPlugin.getPlugin().getProject(getProject()).addTest(test.getUnitName(), test.getMethod(), test.getUnit(), test.getFeature())) {
 				IMarker marker = test.getResource().createMarker(UNDEFINED_FEATURE);
 				marker.setAttribute(IMarker.MESSAGE, "Feature " + test.getFeature() + " is undefined in unit " + test.getUnit());
 				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
@@ -104,7 +104,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 
 	private void addDependecies(Vector<Dependency> dependencies) throws CoreException {
 		for (Dependency dependency : dependencies) {
-			if (!DruidPlugin.getPlugin().getProject(getProject().getName()).addDepends(dependency.getUnitName(), dependency.getFeatureName(), dependency.getUnit(), dependency.getFeature())) {
+			if (!DruidPlugin.getPlugin().getProject(getProject()).addDepends(dependency.getUnitName(), dependency.getFeatureName(), dependency.getUnit(), dependency.getFeature())) {
 				IMarker marker = dependency.getResource().createMarker(UNDEFINED_FEATURE);
 				marker.setAttribute(IMarker.MESSAGE, "Feature " + dependency.getFeature() + " is undefined in unit " + dependency.getUnit());
 				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
@@ -157,7 +157,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			for (IAnnotation annotation : annotations) {
 				if (annotation.getElementName().equals("Feature")) {
 					String featureName = annotation.getMemberValuePairs()[0].getValue().toString();
-					DruidPlugin.getPlugin().getProject(getProject().getName()).addFeature(unitName, advice, methodName, featureName);
+					DruidPlugin.getPlugin().getProject(getProject()).addFeature(unitName, advice, methodName, featureName);
 					annotationCount++;
 					for (IAnnotation annotation2 : annotations) {
 						if (annotation2.getElementName().equals("Depends")) {
@@ -189,7 +189,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		resource.deleteMarkers(NO_ANNOTATION_MARKER, true, IResource.DEPTH_INFINITE);
 		resource.deleteMarkers(UNDEFINED_FEATURE, true, IResource.DEPTH_INFINITE);
 						
-		DruidPlugin.getPlugin().getProject(getProject().getName()).removeClass(cu.getPackageDeclarations()[0].getElementName(), je);
+		DruidPlugin.getPlugin().getProject(getProject()).removeClass(cu.getPackageDeclarations()[0].getElementName(), je);
 		
 		try {
 			IType[] types = cu.getTypes();
@@ -213,7 +213,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			for (IAnnotation annotation : annotations) {
 				if (annotation.getElementName().equals("Feature")) {
 					String featureName = annotation.getMemberValuePairs()[0].getValue().toString();
-					DruidPlugin.getPlugin().getProject(getProject().getName()).addFeature(unitName, method, methodName, featureName);
+					DruidPlugin.getPlugin().getProject(getProject()).addFeature(unitName, method, methodName, featureName);
 					annotationCount++;
 					for (IAnnotation annotation2 : annotations) {
 						if (annotation2.getElementName().equals("Depends")) {
@@ -275,7 +275,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 				String unitName = ((ICompilationUnit)JavaCore.create(resource)).getPackageDeclarations()[0].getElementName();
 				IJavaElement je = (IJavaElement) JavaCore.create(resource);
 
-				DruidPlugin.getPlugin().getProject(getProject().getName()).removeClass(unitName,je);
+				DruidPlugin.getPlugin().getProject(getProject()).removeClass(unitName,je);
 			} catch (JavaModelException e) {
 				e.printStackTrace();
 			}

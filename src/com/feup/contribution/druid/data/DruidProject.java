@@ -19,6 +19,9 @@ package com.feup.contribution.druid.data;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import com.feup.contribution.druid.DruidPlugin;
@@ -27,14 +30,18 @@ import com.feup.contribution.druid.listeners.ProjectListener;
 public class DruidProject{
 	private ArrayList<DruidUnit> units;
 	private ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
-	private String name;
+	private IProject project;
 	
-	public DruidProject(String name){
+	public DruidProject(IProject project){
 		units = new ArrayList<DruidUnit>();
 		listeners = new ArrayList<ProjectListener>();
-		this.setName(name);
+		this.setProject(project);
 	}
 		
+	private void setProject(IProject project) {
+		this.project = project;
+	}
+
 	public Collection<DruidUnit> getUnits(){
 		return units;
 	}
@@ -110,19 +117,13 @@ public class DruidProject{
 		for (DruidComponent druidComponent : components) {			
 			DruidPlugin.getPlugin().log(druidComponent.toString());
 		}
-		
-		
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getName() {
-		return name;
+		return project.getName();
 	}
 
-	public String toString() {
-		return getName();
+	public IProject getIProject() {
+		return project;
 	}
 }

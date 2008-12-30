@@ -16,8 +16,6 @@
 
 package com.feup.contribution.druid.view;
 		
-import java.util.Collection;
-
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
@@ -31,13 +29,11 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
@@ -99,7 +95,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 				Object element = selection.getFirstElement();
 				if (element instanceof DruidProject) {
 					DruidProject project = (DruidProject) element;
-					DruidPlugin.getPlugin().getProject(project.getName()).detectInteractions();
+					project.detectInteractions();
 				}
 			}
 		});

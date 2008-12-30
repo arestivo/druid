@@ -22,9 +22,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.eclipse.core.internal.resources.ProjectInfo;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPluginDescriptor;
 import org.eclipse.core.runtime.Plugin;
@@ -112,10 +114,10 @@ public class DruidPlugin extends Plugin{
 	  }
 	}
 	
-	public DruidProject getProject(String name) {
-		if (projects.containsKey(name)) return projects.get(name);
-		DruidProject project = new DruidProject(name);
-		projects.put(name, project);
+	public DruidProject getProject(IProject iProject) {
+		if (projects.containsKey(iProject.getName())) return projects.get(iProject.getName());
+		DruidProject project = new DruidProject(iProject);
+		projects.put(iProject.getName(), project);
 
 		for (ProjectListener listener : listeners) {
 			project.addProjectListener(listener);
@@ -141,7 +143,8 @@ public class DruidPlugin extends Plugin{
 		listeners.add(listener);
 		Enumeration<DruidProject> enumeration = projects.elements();
 		while (enumeration.hasMoreElements()) {
-			enumeration.nextElement().addProjectListener(listener);
-		}		
+			DruidProject project = enumeration.nextElement();
+			project.addProjectListener(listener);
+		}
 	}
 }
