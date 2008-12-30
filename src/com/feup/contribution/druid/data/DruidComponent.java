@@ -24,7 +24,7 @@ public class DruidComponent {
 			for (DruidUnit unit : component.getUnits())
 				for (DruidUnit dependent : unit.getDependsOnUnit())
 					for (DruidComponent dComponent : components)
-						if (!component.equals(dComponent) && dComponent.contains(dependent)) component.addDependency(dComponent);		
+						if (!component.equals(dComponent) && dComponent.contains(dependent)) dComponent.addDependency(component);		
 
 		for (DruidComponent component : components) 
 			for (DruidComponent dComponent : component.getDependents())
@@ -116,9 +116,10 @@ public class DruidComponent {
 	
 	@Override
 	public String toString() {
-		String s = "Component:";
+		String s = "";
 		for (DruidUnit unit : componentUnits) {
-			s += " " + unit.getName();
+			if (s.equals("")) s = unit.getName();
+			else s += ", " + unit.getName();
 		}
 		return s;
 	}

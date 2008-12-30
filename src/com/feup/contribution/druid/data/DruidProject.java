@@ -20,10 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.listeners.ProjectListener;
 
@@ -114,8 +113,20 @@ public class DruidProject{
 
 	public void detectInteractions() {
 		ArrayList<DruidComponent> components = DruidComponent.getOrderedComponents(units);
-		for (DruidComponent druidComponent : components) {			
-			DruidPlugin.getPlugin().log(druidComponent.toString());
+
+		ArrayList<DruidComponent> toCompile = new ArrayList<DruidComponent>();
+		for (DruidComponent component : components) {			
+			toCompile.add(component);
+			DruidPlugin.getPlugin().log(toCompile.toString());
+			for (DruidComponent druidComponent : toCompile) {
+				for (DruidUnit druidUnit : druidComponent.getUnits()) {
+					for (DruidFeature druidFeature : druidUnit.getFeatures()) {
+						for (DruidTest druidTest : druidFeature.getTests()) {
+							DruidPlugin.getPlugin().log("Executing test: " + druidTest.getMethod());
+						}
+					}
+				}
+			}
 		}
 	}
 
