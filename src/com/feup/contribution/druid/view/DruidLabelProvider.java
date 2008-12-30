@@ -50,7 +50,8 @@ public class DruidLabelProvider extends LabelProvider {
 	@Override
 	public String getText(Object element) {
 		if (element instanceof DruidProject) {
-			return "Project"; 
+			DruidProject project = (DruidProject) element;
+			return project.getName();
 		}
 		if (element instanceof DruidUnit) {
 			DruidUnit unit = (DruidUnit) element;

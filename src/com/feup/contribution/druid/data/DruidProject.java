@@ -21,17 +21,18 @@ import java.util.Collection;
 
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
-
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.listeners.ProjectListener;
 
 public class DruidProject{
 	private ArrayList<DruidUnit> units;
-	private ArrayList<ProjectListener> listeners;
+	private ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
+	private String name;
 	
-	public DruidProject(){
+	public DruidProject(String name){
 		units = new ArrayList<DruidUnit>();
 		listeners = new ArrayList<ProjectListener>();
+		this.setName(name);
 	}
 		
 	public Collection<DruidUnit> getUnits(){
@@ -106,9 +107,22 @@ public class DruidProject{
 
 	public void detectInteractions() {
 		ArrayList<DruidComponent> components = DruidComponent.getOrderedComponents(units);
-		for (DruidComponent druidComponent : components) {
+		for (DruidComponent druidComponent : components) {			
 			DruidPlugin.getPlugin().log(druidComponent.toString());
 		}
+		
+		
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String toString() {
+		return getName();
+	}
 }

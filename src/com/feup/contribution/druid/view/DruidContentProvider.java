@@ -23,6 +23,7 @@ import org.eclipse.jface.viewers.IContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
+import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.data.DruidDependency;
 import com.feup.contribution.druid.data.DruidFeature;
 import com.feup.contribution.druid.data.DruidMethod;
@@ -40,6 +41,10 @@ public class DruidContentProvider implements IContentProvider, ITreeContentProvi
 	}
 
 	public Object[] getChildren(Object parentElement) {
+		if(parentElement instanceof DruidPlugin) {
+			DruidPlugin plugin = (DruidPlugin)parentElement;
+			return plugin.getProjects().toArray();		
+		}
 		if(parentElement instanceof DruidProject) {
 			DruidProject project = (DruidProject)parentElement;
 			return project.getUnits().toArray();
@@ -60,8 +65,11 @@ public class DruidContentProvider implements IContentProvider, ITreeContentProvi
 	}
 
 	public Object getParent(Object element) {
-		if(element instanceof DruidProject) {
+		if(element instanceof DruidPlugin) {
 			return null;
+		}
+		if(element instanceof DruidProject) {
+			return DruidPlugin.getPlugin();
 		}
 		if(element instanceof DruidUnit) {
 			DruidUnit unit = (DruidUnit) element;
@@ -87,6 +95,10 @@ public class DruidContentProvider implements IContentProvider, ITreeContentProvi
 	}
 
 	public boolean hasChildren(Object element) {
+		if(element instanceof DruidPlugin) {
+			DruidPlugin plugin = (DruidPlugin)element;
+			return plugin.getProjects().size() > 0;		
+		}
 		if(element instanceof DruidProject) {
 			DruidProject project = (DruidProject)element;
 			return project.getUnits().size() > 0;

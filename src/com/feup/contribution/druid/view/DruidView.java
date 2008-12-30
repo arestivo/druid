@@ -23,7 +23,9 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -73,7 +75,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 		treeViewer = new TreeViewer(parent);
 		treeViewer.setContentProvider(new DruidContentProvider());
 		treeViewer.setLabelProvider(new DruidLabelProvider());
-		treeViewer.setInput(DruidPlugin.getPlugin().getProject());
+		treeViewer.setInput(DruidPlugin.getPlugin());
 
 		dialogLayout = new GridLayout();
 		dialogLayout.numColumns = 2;
@@ -86,13 +88,29 @@ public class DruidView extends ViewPart implements ProjectListener{
 
 		detectButton = new Button(dialogComposite, SWT.PUSH);
 		detectButton.setText("Execute");
+		detectButton.setEnabled(false);
 		
-		DruidPlugin.getPlugin().getProject().addProjectListener(this);
+		DruidPlugin.getPlugin().addProjectListener(this);
 		
 		detectButton.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event evt) {
-				DruidPlugin.getPlugin().getProject().detectInteractions();
+				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+				Object element = selection.getFirstElement();
+				if (element instanceof DruidProject) {
+					DruidProject project = (DruidProject) element;
+					DruidPlugin.getPlugin().getProject(project.getName()).detectInteractions();
+				}
+			}
+		});
+		
+		treeViewer.addSelectionChangedListener(new ISelectionChangedListener(){
+			@Override
+			public void selectionChanged(SelectionChangedEvent arg0) {
+				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+				Object element = selection.getFirstElement();
+				if (element instanceof DruidProject) detectButton.setEnabled(true);
+				else detectButton.setEnabled(false);
 			}
 		});
 		

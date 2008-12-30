@@ -17,6 +17,9 @@
 package com.feup.contribution.druid;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -28,6 +31,7 @@ import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.ui.wizards.NewAnnotationWizardPage;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
@@ -35,6 +39,9 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 import com.feup.contribution.druid.container.DruidClasspathContainer;
 import com.feup.contribution.druid.data.DruidProject;
+import com.feup.contribution.druid.data.DruidUnit;
+import com.feup.contribution.druid.listeners.ProjectListener;
+import com.feup.contribution.druid.view.DruidView;
 
 @SuppressWarnings("deprecation")
 public class DruidPlugin extends Plugin{
@@ -43,13 +50,13 @@ public class DruidPlugin extends Plugin{
 
 	private static DruidPlugin instance;
 		
-	private DruidProject project;
+	private Hashtable<String, DruidProject> projects = new Hashtable<String, DruidProject>();
 
 	private MessageConsoleStream stream;
+	private ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 	
 	public DruidPlugin(IPluginDescriptor descriptor) {
 		super(descriptor);
-		project = new DruidProject();
 		instance = this;
 
 		MessageConsole myConsole = new MessageConsole("Druid Log", null);
@@ -105,11 +112,36 @@ public class DruidPlugin extends Plugin{
 	  }
 	}
 	
-	public DruidProject getProject() {
+	public DruidProject getProject(String name) {
+		if (projects.containsKey(name)) return projects.get(name);
+		DruidProject project = new DruidProject(name);
+		projects.put(name, project);
+
+		for (ProjectListener listener : listeners) {
+			project.addProjectListener(listener);
+		}
+		
 		return project;
 	}
 	
 	public void log(String message) {
 		stream.println(message);
+	}
+
+	public Collection<DruidProject> getProjects() {
+		ArrayList<DruidProject> apjs = new ArrayList<DruidProject>();
+		Enumeration<DruidProject> enumeration = projects.elements();
+		while (enumeration.hasMoreElements()) {
+			apjs.add(enumeration.nextElement());
+		}
+		return apjs;
+	}
+
+	public void addProjectListener(ProjectListener listener) {
+		listeners.add(listener);
+		Enumeration<DruidProject> enumeration = projects.elements();
+		while (enumeration.hasMoreElements()) {
+			enumeration.nextElement().addProjectListener(listener);
+		}		
 	}
 }
