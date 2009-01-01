@@ -83,6 +83,7 @@ public class DruidComponent {
 		for (int v = 0; v < units.size(); v++) {
 			if (index[v]==-1) i = dfs(units, v, i, index, lowlink, s, instack, components);
 		}	
+		
 		return components;
 	}
 	

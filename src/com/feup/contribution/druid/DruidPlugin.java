@@ -16,6 +16,7 @@
 
 package com.feup.contribution.druid;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -114,10 +115,10 @@ public class DruidPlugin extends Plugin{
 	  }
 	}
 	
-	public DruidProject getProject(IProject iProject) {
-		if (projects.containsKey(iProject.getName())) return projects.get(iProject.getName());
+	public DruidProject getProject(IJavaProject iProject) {
+		if (projects.containsKey(iProject.getElementName())) return projects.get(iProject.getElementName());
 		DruidProject project = new DruidProject(iProject);
-		projects.put(iProject.getName(), project);
+		projects.put(iProject.getElementName(), project);
 
 		for (ProjectListener listener : listeners) {
 			project.addProjectListener(listener);
@@ -128,6 +129,10 @@ public class DruidPlugin extends Plugin{
 	
 	public void log(String message) {
 		stream.println(message);
+	}
+
+	public void logException(Exception e) {
+		e.printStackTrace(new PrintStream(stream));
 	}
 
 	public Collection<DruidProject> getProjects() {

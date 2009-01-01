@@ -19,25 +19,34 @@ package com.feup.contribution.druid.data;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.JavaModelException;
 
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.listeners.ProjectListener;
+import com.feup.contribution.druid.tester.DruidTester;
 
 public class DruidProject{
 	private ArrayList<DruidUnit> units;
 	private ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
-	private IProject project;
+	private IJavaProject project;
 	
-	public DruidProject(IProject project){
+	public static final String FEATURE_BROKEN = "com.feup.contribution.druid.featureBroken";
+	public static final String UNDEFINED_FEATURE = "com.feup.contribution.druid.undefinedFeature";
+	
+	public DruidProject(IJavaProject project){
 		units = new ArrayList<DruidUnit>();
 		listeners = new ArrayList<ProjectListener>();
 		this.setProject(project);
 	}
 		
-	private void setProject(IProject project) {
+	private void setProject(IJavaProject project) {
 		this.project = project;
 	}
 
@@ -113,28 +122,60 @@ public class DruidProject{
 
 	public void detectInteractions() {
 		ArrayList<DruidComponent> components = DruidComponent.getOrderedComponents(units);
-
 		ArrayList<DruidComponent> toCompile = new ArrayList<DruidComponent>();
+
+		DruidTester tester = new DruidTester();
+
+		String cp = "";
+		try {
+			IClasspathEntry[] classpath = project.getJavaProject().getResolvedClasspath(false);
+			for (IClasspathEntry classpathEntry : classpath) {
+				if (cp.equals("")) cp = classpathEntry.getPath().toOSString();
+				else cp += ":" + classpathEntry.getPath().toOSString();
+			}
+		} catch (JavaModelException e) {
+			DruidPlugin.getPlugin().logException(e);
+		}
+		
 		for (DruidComponent component : components) {			
 			toCompile.add(component);
-			DruidPlugin.getPlugin().log(toCompile.toString());
 			for (DruidComponent druidComponent : toCompile) {
+				tester.setUpTest(toCompile);
+				tester.compile(cp);
 				for (DruidUnit druidUnit : druidComponent.getUnits()) {
 					for (DruidFeature druidFeature : druidUnit.getFeatures()) {
 						for (DruidTest druidTest : druidFeature.getTests()) {
-							DruidPlugin.getPlugin().log("Executing test: " + druidTest.getMethod());
+							boolean result = tester.test(druidTest.getMethod(), cp);
+							if (!result) {
+								String message = "";
+								if (component.getUnits().size() == 1) message = "Unit " + component.getUnits().get(0).getName() + " breaks feature " + druidFeature.getName();
+								else message = "Units " + component.getUnits() + " break feature " + druidFeature.getName();
+								try {
+									druidTest.getMethod().getResource().deleteMarkers(FEATURE_BROKEN, true, IResource.DEPTH_INFINITE);
+									IMarker marker = druidTest.getMethod().getResource().createMarker(FEATURE_BROKEN);
+									marker.setAttribute(IMarker.MESSAGE, message);
+									marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+									marker.setAttribute(IMarker.CHAR_START, druidTest.getMethod().getNameRange().getOffset());
+									marker.setAttribute(IMarker.CHAR_END, druidTest.getMethod().getNameRange().getOffset() + druidTest.getMethod().getNameRange().getLength());
+									DruidPlugin.getPlugin().log(marker.exists()?"Exists":"Doesn't Exist");
+								} catch (CoreException e) {
+									DruidPlugin.getPlugin().logException(e);
+								}
+								return;
+							}
 						}
 					}
 				}
+				tester.tearDown();
 			}
 		}
 	}
 
 	public String getName() {
-		return project.getName();
+		return project.getElementName();
 	}
 
-	public IProject getIProject() {
+	public IJavaProject getIProject() {
 		return project;
 	}
 }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: drUID
 Bundle-SymbolicName: com.feup.contribution.druid;singleton:=true
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2
 Bundle-Activator: org.eclipse.core.internal.compatibility.PluginActivator
 Bundle-Vendor: FEUP
 Export-Package: com.feup.contribution.druid.annotations
@@ -14,9 +14,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime.compatibility,
  org.eclipse.ajdt.core;bundle-version="1.6.0",
  org.eclipse.ui.console;bundle-version="3.3.0",
- org.aspectj.ajde;bundle-version="1.6.1"
+ org.aspectj.ajde;bundle-version="1.6.1",
+ org.eclipse.jdt.junit;bundle-version="3.4.0"
 Bundle-ActivationPolicy: lazy
 Plugin-Class: com.feup.contribution.druid.DruidPlugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-
-

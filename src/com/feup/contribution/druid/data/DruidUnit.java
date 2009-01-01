@@ -107,4 +107,9 @@ public class DruidUnit {
 		}
 		return dependsOn;
 	}
+	
+	@Override
+	public String toString() {
+		return getName();
+	}
 }
