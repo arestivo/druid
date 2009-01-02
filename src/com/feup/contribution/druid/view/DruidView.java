@@ -53,7 +53,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 	
 	private Button detectButton;
 	private Label detectLabel;
-		
+	
 	@Override
 	public void setFocus() {
 	}

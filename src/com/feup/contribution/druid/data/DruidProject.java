@@ -16,12 +16,18 @@
 
 package com.feup.contribution.druid.data;
 
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
@@ -76,6 +82,7 @@ public class DruidProject{
 		for (ProjectListener listener : listeners) {
 			listener.projectChanged(this);
 		}
+		drawDiagram();
 	}
 	
 	public void addProjectListener(ProjectListener listener) {
@@ -177,5 +184,52 @@ public class DruidProject{
 
 	public IJavaProject getIProject() {
 		return project;
+	}
+
+	public void drawDiagram() {
+		String workspacepath = Platform.getLocation().toOSString();
+		String unitpath = getIProject().getPath().toOSString();
+		try {
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(workspacepath + unitpath + "/druid.dot")));
+			bw.write("graph \"druid\" {\n");
+			bw.write("  node [ fontname = \"Trebuchet\", label = \"\\N\"]\n");
+			bw.write("  node [ shape = \"component\", color = \"blue\"]\n");
+
+			for (DruidUnit unit : units) {
+				bw.write("    \"" + unit.getName() + "\"\n");
+			}
+
+			bw.write("  node [ shape = \"egg\", color=\"green\"]\n");
+
+			for (DruidUnit unit : units) {
+				for (DruidFeature feature : unit.getFeatures()) {
+					bw.write("    \"" + feature.getName() + "\"\n");
+				}
+			}
+			
+			bw.write("  edge [ color = \"black\", arrowhead=\"dot\" ]\n");
+			for (DruidUnit unit : units) {
+				for (DruidFeature feature : unit.getFeatures()) {
+					bw.write("    \"" + unit.getName() + "\" -- \"" + feature.getName() + "\"\n");
+				}
+			}
+
+			bw.write("  edge [ color = \"green\", arrowhead=\"box\" ]\n");
+			for (DruidUnit unit : units) {
+				for (DruidFeature feature : unit.getFeatures()) {
+					for (DruidDependency dependency : feature.getDependecies()) {
+						bw.write("    \"" + feature.getName() + "\" -- \"" + dependency.getDependee().getName() + "\"\n");
+					}
+				}
+			}
+
+			
+			bw.write("}\n");
+			bw.close();
+		} catch (FileNotFoundException e) {
+			DruidPlugin.getPlugin().logException(e);
+		} catch (IOException e) {
+			DruidPlugin.getPlugin().logException(e);
+		}
 	}
 }
