@@ -194,8 +194,9 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 							dependencies.add(new Dependency(unitName, featureName, unit, feature, advice.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
 						if (annotation2.getElementName().equals("Deprecates")) {
-							String unit = annotation2.getMemberValuePairs()[0].getValue().toString();
-							String feature = annotation2.getMemberValuePairs()[1].getValue().toString();
+							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
+							String unit = extractUnit(value);
+							String feature = extractFeature(value);
 							deprecates.add(new Deprecate(unitName, featureName, unit, feature, advice.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
 					}
@@ -256,8 +257,9 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 							dependencies.add(new Dependency(unitName, featureName, unit, feature,method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
 						if (annotation2.getElementName().equals("Deprecates")) {
-							String unit = annotation2.getMemberValuePairs()[0].getValue().toString();
-							String feature = annotation2.getMemberValuePairs()[1].getValue().toString();
+							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
+							String unit = extractUnit(value);
+							String feature = extractFeature(value);
 							deprecates.add(new Deprecate(unitName, featureName, unit, feature,method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
 					}

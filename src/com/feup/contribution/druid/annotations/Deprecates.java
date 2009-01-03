@@ -24,6 +24,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.CONSTRUCTOR})
 @Retention(RetentionPolicy.CLASS)
 public @interface Deprecates {
-	String feature();
-	String unit();
+	String value();
 }
