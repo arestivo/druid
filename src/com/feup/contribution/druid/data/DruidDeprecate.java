@@ -18,27 +18,32 @@ package com.feup.contribution.druid.data;
 
 import org.eclipse.core.resources.IResource;
 
-public class DruidDependency {
-	private DruidFeature dependent; 
-	private DruidFeature dependee;
+public class DruidDeprecate {
+	private DruidFeature deprecates; 
+	private DruidFeature deprecated;
 	private IResource resource;
 	private int offset;
 	private int length;
 	
-	public DruidDependency(DruidFeature dependee, DruidFeature dependent, IResource resource, int offset, int length) {
-		this.dependee = dependee;
-		this.dependent = dependent;
+	public DruidDeprecate(DruidFeature deprecated, DruidFeature deprecates, IResource resource, int offset, int length) {
+		this.deprecated = deprecated;
+		this.deprecates = deprecates;
 		this.setResource(resource);
 		this.setOffset(offset);
 		this.setLength(length);
 	}
 
-	public DruidFeature getDependent() {
-		return dependent;
+	public DruidFeature getDeprecates() {
+		return deprecates;
 	}
 
-	public DruidFeature getDependee() {
-		return dependee;
+	public DruidFeature getDeprecated() {
+		return deprecated;
+	}
+	
+	@Override
+	public String toString() {
+		return deprecates.toString();
 	}
 
 	public void setResource(IResource resource) {

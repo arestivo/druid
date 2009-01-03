@@ -59,6 +59,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	@Override
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 	throws CoreException {
+		try{
 		if (kind == FULL_BUILD) {
 			fullBuild(monitor);
 		} else {
@@ -66,18 +67,22 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			if (delta == null) {
 				fullBuild(monitor);
 			} else {
-				incrementalBuild(delta, monitor);
+				fullBuild(monitor); // This shouldn't be a full build
+				//incrementalBuild(delta, monitor);
 			}
-		}
+		}}
+		catch (Exception e) {DruidPlugin.getPlugin().logException(e);}
 		return null;
 	}
 
 	private void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
 		Vector<Dependency> dependencies = new Vector<Dependency>();
 		Vector<Test> tests = new Vector<Test>();
-		delta.accept(new DeltaVisitor(dependencies, tests));
+		Vector<Deprecate> deprecates = new Vector<Deprecate>();
+		delta.accept(new DeltaVisitor(dependencies, tests, deprecates));
 		addDependecies(dependencies);
 		addTests(tests);
+		addDeprecates(deprecates);
 		DruidPlugin.getPlugin().getProject(getJavaProject()).builderDone();
 	}
 
@@ -85,11 +90,25 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	private void fullBuild(IProgressMonitor monitor) throws CoreException {
 		Vector<Dependency> dependencies = new Vector<Dependency>();
 		Vector<Test> tests = new Vector<Test>();
+		Vector<Deprecate> deprecates = new Vector<Deprecate>();
 		DruidPlugin.getPlugin().getProject(getJavaProject()).removeAllFeatures();
-		getProject().accept(new ResourceVisitor(dependencies, tests));
+		getProject().accept(new ResourceVisitor(dependencies, tests, deprecates));
 		addDependecies(dependencies);
 		addTests(tests);
+		addDeprecates(deprecates);
 		DruidPlugin.getPlugin().getProject(getJavaProject()).builderDone();
+	}
+
+	private void addDeprecates(Vector<Deprecate> deprecates) throws CoreException {
+		for (Deprecate deprecate : deprecates) {
+			if (!DruidPlugin.getPlugin().getProject(getJavaProject()).addDeprecate(deprecate.getUnitName(), deprecate.getFeatureName(), deprecate.getUnit(), deprecate.getFeature(), deprecate.resource, deprecate.offset, deprecate.length)) {
+				IMarker marker = deprecate.getResource().createMarker(UNDEFINED_FEATURE);
+				marker.setAttribute(IMarker.MESSAGE, "Feature " + deprecate.getFeature() + " is undefined in unit " + deprecate.getUnit());
+				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+				marker.setAttribute(IMarker.CHAR_START, deprecate.getOffset());
+				marker.setAttribute(IMarker.CHAR_END, deprecate.getOffset() + deprecate.getLength());
+			}
+		}
 	}
 
 	public IJavaProject getJavaProject() {
@@ -112,7 +131,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 
 	private void addDependecies(Vector<Dependency> dependencies) throws CoreException {
 		for (Dependency dependency : dependencies) {
-			if (!DruidPlugin.getPlugin().getProject(getJavaProject()).addDepends(dependency.getUnitName(), dependency.getFeatureName(), dependency.getUnit(), dependency.getFeature())) {
+			if (!DruidPlugin.getPlugin().getProject(getJavaProject()).addDepends(dependency.getUnitName(), dependency.getFeatureName(), dependency.getUnit(), dependency.getFeature(), dependency.getResource(), dependency.getOffset(), dependency.getLength())) {
 				IMarker marker = dependency.getResource().createMarker(UNDEFINED_FEATURE);
 				marker.setAttribute(IMarker.MESSAGE, "Feature " + dependency.getFeature() + " is undefined in unit " + dependency.getUnit());
 				marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
@@ -128,12 +147,12 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		page.showView("com.feup.contribution.druid.view");
 	}
 
-	private void checkResourceAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests) throws CoreException{
-		if (resource.getFileExtension().equals("java")) checkClassAnnotations(resource, dependencies, tests);
-		if (resource.getFileExtension().equals("aj")) checkAspectAnnotations(resource, dependencies);
+	private void checkResourceAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException{
+		if (resource.getFileExtension().equals("java")) checkClassAnnotations(resource, dependencies, tests, deprecates);
+		if (resource.getFileExtension().equals("aj")) checkAspectAnnotations(resource, dependencies, deprecates);
 	}
 
-	private void checkAspectAnnotations(IResource resource, Vector<Dependency> dependencies) throws CoreException{
+	private void checkAspectAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Deprecate> deprecates) throws CoreException{
 		IFile file = (IFile) resource;
 		ICompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		ICompilationUnit mappedUnit = AJCompilationUnitManager.mapToAJCompilationUnit(cu);
@@ -148,14 +167,14 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					AspectElement aspect = (AspectElement) type;
 					AdviceElement[] advices = aspect.getAdvice();
 					for (int i = 0; i < advices.length; i++) {
-						checkAdviceAnnotations(advices[i], dependencies);
+						checkAdviceAnnotations(advices[i], dependencies, deprecates);
 					}
 				}
 			}
 		}
 	}
 	
-	private void checkAdviceAnnotations(AdviceElement advice, Vector<Dependency> dependencies) throws CoreException {
+	private void checkAdviceAnnotations(AdviceElement advice, Vector<Dependency> dependencies, Vector<Deprecate> deprecates) throws CoreException {
 		try {
 			String unitName = advice.getCompilationUnit().getPackageDeclarations()[0].getElementName();
 			String methodName = MethodSignatureCreator.createSignature(advice);
@@ -173,6 +192,11 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 							String feature = annotation2.getMemberValuePairs()[1].getValue().toString();
 							dependencies.add(new Dependency(unitName, featureName, unit, feature, advice.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
+						if (annotation2.getElementName().equals("Deprecates")) {
+							String unit = annotation2.getMemberValuePairs()[0].getValue().toString();
+							String feature = annotation2.getMemberValuePairs()[1].getValue().toString();
+							deprecates.add(new Deprecate(unitName, featureName, unit, feature, advice.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
+						}
 					}
 				}
 			}
@@ -184,13 +208,13 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
 					marker.setAttribute(IMarker.CHAR_START, advice.getNameRange().getOffset());
 					marker.setAttribute(IMarker.CHAR_END, advice.getNameRange().getOffset() + advice.getNameRange().getLength());
-				} catch (Exception e) {e.printStackTrace();}
+				} catch (Exception e) {DruidPlugin.getPlugin().logException(e);}
 			}
 			
-		} catch (JavaModelException e) {e.printStackTrace();}
+		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
 	}
 
-	private void checkClassAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests) throws CoreException{
+	private void checkClassAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException{
 		ICompilationUnit cu = (ICompilationUnit) JavaCore.create(resource);
 		IJavaElement je = (IJavaElement) JavaCore.create(resource);
 		
@@ -204,13 +228,13 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			for (IType type : types) {
 				IMethod[] methods = type.getMethods();
 				for (IMethod method : methods) {
-					checkMethodAnnotations(method, dependencies, tests);
+					checkMethodAnnotations(method, dependencies, tests, deprecates);
 				}
 			}
-		} catch (JavaModelException e) {e.printStackTrace();}		
+		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}		
 	}
 
-	private void checkMethodAnnotations(IMethod method, Vector<Dependency> dependencies, Vector<Test> tests) throws CoreException {
+	private void checkMethodAnnotations(IMethod method, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException {
 		//if (!Flags.isPublic(method.getFlags())) return;
 		try {
 			String unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();
@@ -229,6 +253,11 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 							String feature = annotation2.getMemberValuePairs()[1].getValue().toString();
 							dependencies.add(new Dependency(unitName, featureName, unit, feature,method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
+						if (annotation2.getElementName().equals("Deprecates")) {
+							String unit = annotation2.getMemberValuePairs()[0].getValue().toString();
+							String feature = annotation2.getMemberValuePairs()[1].getValue().toString();
+							deprecates.add(new Deprecate(unitName, featureName, unit, feature,method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
+						}
 					}
 				}
 				if (annotation.getElementName().equals("Tests")) {
@@ -244,19 +273,21 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
 					marker.setAttribute(IMarker.CHAR_START, method.getNameRange().getOffset());
 					marker.setAttribute(IMarker.CHAR_END, method.getNameRange().getOffset() + method.getNameRange().getLength());
-				} catch (Exception e) {e.printStackTrace();}
+				} catch (Exception e) {DruidPlugin.getPlugin().logException(e);}
 			}
 			
-		} catch (JavaModelException e) {e.printStackTrace();}
+		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
 	}
 
 	class DeltaVisitor implements IResourceDeltaVisitor {
 		Vector<Dependency> dependencies;
 		Vector<Test> tests;
+		Vector<Deprecate> deprecates;
 		
-		public DeltaVisitor(Vector<Dependency> dependencies, Vector<Test> tests) {
+		public DeltaVisitor(Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) {
 			this.dependencies = dependencies;
 			this.tests = tests;
+			this.deprecates = deprecates;
 		}
 
 		public boolean visit(IResourceDelta delta) throws CoreException {
@@ -265,14 +296,14 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			if (!resource.getFileExtension().equals("java") && !resource.getFileExtension().equals("aj")) return true;
 			switch (delta.getKind()) {
 			case IResourceDelta.ADDED:
-				checkResourceAnnotations(resource, dependencies, tests);
+				checkResourceAnnotations(resource, dependencies, tests, deprecates);
 				break;
 			case IResourceDelta.REMOVED:
 				removeResource(resource);
 				break;
 			case IResourceDelta.CHANGED:
 				removeResource(resource);
-				checkResourceAnnotations(resource, dependencies, tests);
+				checkResourceAnnotations(resource, dependencies, tests, deprecates);
 				break;
 			}
 			return true;
@@ -285,7 +316,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 
 				DruidPlugin.getPlugin().getProject(getJavaProject()).removeClass(unitName,je);
 			} catch (JavaModelException e) {
-				e.printStackTrace();
+				DruidPlugin.getPlugin().logException(e);
 			}
 		}
 	}
@@ -293,20 +324,22 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	class ResourceVisitor implements IResourceVisitor {
 		Vector<Dependency> dependencies;
 		Vector<Test> tests;
+		Vector<Deprecate> deprecates;
 		
-		public ResourceVisitor(Vector<Dependency> dependencies, Vector<Test> tests) {
+		public ResourceVisitor(Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) {
 			this.dependencies = dependencies;
 			this.tests = tests;
+			this.deprecates = deprecates;
 		}
 
 		public boolean visit(IResource resource) {
 			try {
 				if (resource.getFileExtension() != null && (resource.getFileExtension().equals("java") || resource.getFileExtension().equals("aj"))) 
-					checkResourceAnnotations(resource, dependencies, tests);
+					checkResourceAnnotations(resource, dependencies, tests, deprecates);
 			} catch (JavaModelException e) {
-				e.printStackTrace();
+				DruidPlugin.getPlugin().logException(e);
 			} catch (CoreException e) {
-				e.printStackTrace();
+				DruidPlugin.getPlugin().logException(e);
 			}
 			return true;
 		}
@@ -359,6 +392,55 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			return length;
 		}
 	}
+
+	class Deprecate {
+		private String unitName;
+		private String featureName; 
+		private String unit; 
+		private String feature;
+		private IResource resource;
+		private int offset;
+		private int length;
+	
+		public Deprecate(String unitName, String featureName, String unit, String feature, IResource resource, int offset, int length){
+			this.unitName = unitName;
+			this.featureName = featureName;
+			this.unit = unit;
+			this.feature = feature;
+			this.resource = resource;
+			this.offset = offset;
+			this.length = length;
+		}
+
+		public String getUnitName() {
+			return unitName;
+		}
+
+		public String getFeatureName() {
+			return featureName;
+		}
+
+		public String getUnit() {
+			return unit;
+		}
+
+		public String getFeature() {
+			return feature;
+		}
+
+		public IResource getResource() {
+			return resource;
+		}
+
+		public int getOffset() {
+			return offset;
+		}
+
+		public int getLength() {
+			return length;
+		}
+	}
+
 	
 	class Test {
 		private String unitName;

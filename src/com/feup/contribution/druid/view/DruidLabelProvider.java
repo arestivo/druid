@@ -22,6 +22,7 @@ import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 
 import com.feup.contribution.druid.data.DruidDependency;
+import com.feup.contribution.druid.data.DruidDeprecate;
 import com.feup.contribution.druid.data.DruidFeature;
 import com.feup.contribution.druid.data.DruidMethod;
 import com.feup.contribution.druid.data.DruidProject;
@@ -32,10 +33,12 @@ import com.feup.contribution.druid.util.MethodSignatureCreator;
 public class DruidLabelProvider extends LabelProvider {	
 	@Override
 	public Image getImage(Object element) {
+		if (element instanceof DruidProject) return SharedImages.getImage("project.gif"); 
 		if (element instanceof DruidTest) return SharedImages.getImage("test.gif"); 
 		if (element instanceof DruidUnit) return SharedImages.getImage("package_obj.gif"); 
 		if (element instanceof DruidFeature) return SharedImages.getImage("feature_obj.gif");
 		if (element instanceof DruidDependency) return SharedImages.getImage("depends.gif");
+		if (element instanceof DruidDeprecate) return SharedImages.getImage("deprecates.gif");
 		if (element instanceof DruidMethod) {
 			DruidMethod method = (DruidMethod) element;
 			try {
@@ -68,6 +71,10 @@ public class DruidLabelProvider extends LabelProvider {
 		if (element instanceof DruidDependency) {
 			DruidDependency dependency = (DruidDependency) element;
 			return dependency.getDependee().getName();
+		}
+		if (element instanceof DruidDeprecate) {
+			DruidDeprecate deprecate = (DruidDeprecate) element;
+			return deprecate.getDeprecated().getName();
 		}
 		if (element instanceof DruidTest) {
 			DruidTest test = (DruidTest) element;

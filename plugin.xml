@@ -49,40 +49,34 @@
   </page>
 </extension>
   
-  <extension
-    id="noAnnotationWarning"
-    name="No Feature Annotation"
-    point="org.eclipse.core.resources.markers">
-    <super
-      type="org.eclipse.core.resources.problemmarker">
-    </super>
-    <persistent
-      value="true">
-    </persistent>
+  <extension id="noAnnotationWarning" name="No Feature Annotation" point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.core.resources.problemmarker"></super>
+    <persistent value="true"></persistent>
   </extension>
 
-  <extension
-    id="undefinedFeature"
-    name="Undefined Feature"
-    point="org.eclipse.core.resources.markers">
-    <super
-      type="org.eclipse.core.resources.problemmarker">
-    </super>
-    <persistent
-      value="true">
-    </persistent>
+  <extension id="undefinedFeature" name="Undefined Feature" point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.core.resources.problemmarker"></super>
+    <persistent value="true"></persistent>
   </extension>
 
-  <extension
-    id="featureBroken"
-    name="Feature Broken"
-    point="org.eclipse.core.resources.markers">
-    <super
-      type="org.eclipse.core.resources.problemmarker">
-    </super>
-    <persistent
-      value="false">
-    </persistent>
+  <extension id="featureBroken" name="Feature Broken" point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.core.resources.problemmarker"></super>
+    <persistent value="false"></persistent>
+  </extension>
+
+  <extension id="featureNotBroken" name="Feature Not Broken" point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.core.resources.problemmarker"></super>
+    <persistent value="false"></persistent>
+  </extension>
+
+  <extension id="dependencyDeprecated" name="Dependency Deprecated" point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.core.resources.problemmarker"></super>
+    <persistent value="false"></persistent>
+  </extension>
+
+  <extension id="failedTest" name="Failed Test" point="org.eclipse.core.resources.markers">
+    <super type="org.eclipse.core.resources.problemmarker"></super>
+    <persistent value="false"></persistent>
   </extension>
   
   <extension point="org.eclipse.jdt.ui.quickAssistProcessors">

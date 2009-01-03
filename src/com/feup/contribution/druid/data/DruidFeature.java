@@ -19,14 +19,19 @@ package com.feup.contribution.druid.data;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+
+import com.feup.contribution.druid.DruidPlugin;
 
 public class DruidFeature {
 	private String name;
 	private ArrayList<DruidMethod> methods;
 	private ArrayList<DruidDependency> dependencies;
+	private ArrayList<DruidDeprecate> deprecates;
 	private ArrayList<DruidTest> tests;
+	private ArrayList<DruidDeprecate> deprecatedBy;
 	private DruidUnit unit;
 	
 	public DruidFeature(String name, DruidUnit unit){
@@ -35,6 +40,8 @@ public class DruidFeature {
 		methods = new ArrayList<DruidMethod>();
 		dependencies = new ArrayList<DruidDependency>();
 		tests = new ArrayList<DruidTest>();
+		deprecates = new ArrayList<DruidDeprecate>();
+		deprecatedBy = new ArrayList<DruidDeprecate>();
 	}
 
 	private void setUnit(DruidUnit unit) {
@@ -73,9 +80,8 @@ public class DruidFeature {
 		return unit;
 	}
 
-	public void addDepends(DruidFeature feature) {
-		dependencies.add(new DruidDependency(feature, this));
-		
+	public void addDepends(DruidFeature feature, IResource resource, int offset, int length) {
+		dependencies.add(new DruidDependency(feature, this, resource, offset, length));
 	}
 
 	public Collection<DruidDependency> getDependecies() {
@@ -98,6 +104,42 @@ public class DruidFeature {
 
 	public Collection<DruidTest> getTests() {
 		return tests;
+	}
+
+	public void addDeprecates(DruidFeature feature, IResource resource, int offset, int length) {
+		deprecates.add(new DruidDeprecate(feature, this, resource, offset, length));
+	}
+
+	public Collection<DruidDeprecate> getDeprecates() {
+		return deprecates;		
+	}
+
+	public void cleanDeprecatedBy() {
+		deprecatedBy.clear();	
+	}
+
+	public void updateDeprecatedBy() {
+		for (DruidDeprecate deprecate : deprecates) {
+			deprecate.getDeprecated().addDeprecatedBy(deprecate);
+		}
+		
+	}
+
+	private void addDeprecatedBy(DruidDeprecate deprecate) {
+		deprecatedBy.add(deprecate);
+	}
+
+	public boolean isDeprecated() {
+		return deprecatedBy.size() > 0;
+	}
+
+	public ArrayList<DruidDeprecate> getDeprecatedBy() {
+		return deprecatedBy;
+	}
+
+	@Override
+	public String toString() {
+		return getUnit().getName()+"."+getName();
 	}
 	
 }

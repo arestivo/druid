@@ -44,7 +44,9 @@ public class DruidProject{
 	private IJavaProject project;
 	
 	public static final String FEATURE_BROKEN = "com.feup.contribution.druid.featureBroken";
-	public static final String UNDEFINED_FEATURE = "com.feup.contribution.druid.undefinedFeature";
+	public static final String FEATURE_NOT_BROKEN = "com.feup.contribution.druid.featureNotBroken";
+	public static final String FAILED_TEST = "com.feup.contribution.druid.failedTest";
+	public static final String DEPENDENCY_DEPRECATED = "com.feup.contribution.druid.dependencyDeprecated";
 	
 	public DruidProject(IJavaProject project){
 		units = new ArrayList<DruidUnit>();
@@ -102,14 +104,14 @@ public class DruidProject{
 		units.clear();
 	}
 
-	public boolean addDepends(String unitName, String featureName, String dUnitName, String dFeatureName) {
+	public boolean addDepends(String unitName, String featureName, String dUnitName, String dFeatureName, IResource resource, int offset, int length) {
 		DruidUnit unit = getUnit(unitName);
 		if (unit == null) {
 			unit = new DruidUnit(unitName, this);
 			units.add(unit);
 		}
 		DruidFeature dFeature = getFeature(dUnitName, dFeatureName);
-		if (dFeature != null) unit.addDepends(featureName, dFeature);
+		if (dFeature != null) unit.addDepends(featureName, dFeature, resource, offset, length);
 		else return false;
 		return true;
 	}
@@ -133,6 +135,91 @@ public class DruidProject{
 
 		DruidTester tester = new DruidTester();
 
+		String cp = getClasspath();
+
+		removeDeprecatedBy();
+		removeOldMarkers();
+					
+		for (DruidComponent component : components) {			
+			toCompile.add(component);
+		
+			if (testDeprecatedFeatures(component)) return;
+		
+			for (DruidUnit druidUnit : component.getUnits()) druidUnit.addDeprecatedBy();
+			
+			tester.setUpTest(toCompile);
+			tester.compile(cp);
+			
+			for (DruidComponent druidComponent : toCompile) {
+				for (DruidUnit druidUnit : druidComponent.getUnits()) {
+					for (DruidFeature druidFeature : druidUnit.getFeatures()) {						
+						for (DruidTest druidTest : druidFeature.getTests()) {
+							DruidPlugin.getPlugin().log(druidTest.getMethod().getElementName());							
+							boolean result = tester.test(druidTest.getMethod(), cp);
+							
+							try {
+								if (!result && component.getUnits().contains(druidUnit)) {
+									String message = "Unit: " + component.getUnits().get(0).getName() + " test failed for feature " + druidFeature;
+									IMethod method = druidTest.getMethod();
+									addMarker(FAILED_TEST, message, method.getResource(), method.getNameRange().getOffset(), method.getNameRange().getLength());
+									return;
+								} else if (!druidFeature.isDeprecated() && !result) {
+									String message = "Unit " + component.getUnits().get(0).getName() + " breaks feature " + druidFeature;
+									IMethod method = druidTest.getMethod();
+									addMarker(FEATURE_BROKEN, message, method.getResource(), method.getNameRange().getOffset(), method.getNameRange().getLength());
+									return;
+								} else if (druidFeature.isDeprecated() && result) {
+									String message = "Unit " + component.getUnits().get(0).getName() + " doesn't break feature " + druidFeature;
+									DruidDeprecate deprecate = druidFeature.getDeprecatedBy().get(0);
+									addMarker(FEATURE_NOT_BROKEN, message, deprecate.getResource(), deprecate.getOffset(), deprecate.getLength());
+								}
+							} catch (JavaModelException e) {
+								DruidPlugin.getPlugin().logException(e);
+							}
+						}
+					}
+				}
+				tester.tearDown();
+			}
+		}
+	}
+
+	private void addMarker(String type, String message, IResource resource, int offset, int length) {
+		try {
+			IMarker marker = resource.createMarker(type);
+			marker.setAttribute(IMarker.MESSAGE, message);
+			marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+			marker.setAttribute(IMarker.CHAR_START, offset);
+			marker.setAttribute(IMarker.CHAR_END, offset + length);
+		} catch (CoreException e) {
+			DruidPlugin.getPlugin().logException(e);
+		}
+		
+	}
+	
+	private void removeDeprecatedBy() {
+		for (DruidUnit unit : units) unit.removeDeprecatedBy();
+	}
+
+	private void removeOldMarkers() {
+		try {
+			for (DruidUnit unit : units)
+				for (DruidFeature feature : unit.getFeatures()) {
+					for (DruidMethod method : feature.getMethods())
+						method.getMethod().getResource().deleteMarkers(DEPENDENCY_DEPRECATED, true, IResource.DEPTH_INFINITE);
+	
+					for(DruidTest test : feature.getTests()) {
+							test.getMethod().getResource().deleteMarkers(FEATURE_BROKEN, true, IResource.DEPTH_INFINITE);
+							test.getMethod().getResource().deleteMarkers(FEATURE_NOT_BROKEN, true, IResource.DEPTH_INFINITE);
+							test.getMethod().getResource().deleteMarkers(FAILED_TEST, true, IResource.DEPTH_INFINITE);
+					}
+				}
+		} catch (CoreException e) {
+			DruidPlugin.getPlugin().logException(e);
+		}
+	}
+
+	private String getClasspath() {
 		String cp = "";
 		try {
 			IClasspathEntry[] classpath = project.getJavaProject().getResolvedClasspath(false);
@@ -143,39 +230,32 @@ public class DruidProject{
 		} catch (JavaModelException e) {
 			DruidPlugin.getPlugin().logException(e);
 		}
-		
-		for (DruidComponent component : components) {			
-			toCompile.add(component);
-			for (DruidComponent druidComponent : toCompile) {
-				tester.setUpTest(toCompile);
-				tester.compile(cp);
-				for (DruidUnit druidUnit : druidComponent.getUnits()) {
-					for (DruidFeature druidFeature : druidUnit.getFeatures()) {
-						for (DruidTest druidTest : druidFeature.getTests()) {
-							boolean result = tester.test(druidTest.getMethod(), cp);
-							if (!result) {
-								String message = "";
-								if (component.getUnits().size() == 1) message = "Unit " + component.getUnits().get(0).getName() + " breaks feature " + druidFeature.getName();
-								else message = "Units " + component.getUnits() + " break feature " + druidFeature.getName();
-								try {
-									druidTest.getMethod().getResource().deleteMarkers(FEATURE_BROKEN, true, IResource.DEPTH_INFINITE);
-									IMarker marker = druidTest.getMethod().getResource().createMarker(FEATURE_BROKEN);
-									marker.setAttribute(IMarker.MESSAGE, message);
-									marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-									marker.setAttribute(IMarker.CHAR_START, druidTest.getMethod().getNameRange().getOffset());
-									marker.setAttribute(IMarker.CHAR_END, druidTest.getMethod().getNameRange().getOffset() + druidTest.getMethod().getNameRange().getLength());
-									DruidPlugin.getPlugin().log(marker.exists()?"Exists":"Doesn't Exist");
-								} catch (CoreException e) {
-									DruidPlugin.getPlugin().logException(e);
-								}
-								return;
-							}
+		return cp;
+	}
+
+	private boolean testDeprecatedFeatures(DruidComponent component) {
+		for (DruidUnit druidUnit : component.getUnits())
+			for (DruidFeature feature : druidUnit.getFeatures()) {
+				for (DruidDependency dependency : feature.getDependecies()) {
+					if (dependency.getDependee().isDeprecated()) {
+						String message = "Feature " + dependency.getDependee() + " deprecated by " + dependency.getDependee().getDeprecatedBy();
+						DruidPlugin.getPlugin().log(message);
+
+						try {
+							IMarker marker = dependency.getResource().createMarker(DEPENDENCY_DEPRECATED);
+							marker.setAttribute(IMarker.MESSAGE, message);
+							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+							marker.setAttribute(IMarker.CHAR_START, dependency.getOffset());
+							marker.setAttribute(IMarker.CHAR_END, dependency.getOffset() + dependency.getLength());
+						} catch (CoreException e) {
+							DruidPlugin.getPlugin().logException(e);
 						}
+
+						return true;
 					}
 				}
-				tester.tearDown();
 			}
-		}
+		return false;
 	}
 
 	public String getName() {
@@ -223,6 +303,14 @@ public class DruidProject{
 				}
 			}
 
+			bw.write("  edge [ color = \"blue\", arrowhead=\"diamond\" ]\n");
+			for (DruidUnit unit : units) {
+				for (DruidFeature feature : unit.getFeatures()) {
+					for (DruidDeprecate deprecate : feature.getDeprecates()) {
+						bw.write("    \"" + feature.getName() + "\" -- \"" + deprecate.getDeprecated().getName() + "\"\n");
+					}
+				}
+			}			
 			
 			bw.write("}\n");
 			bw.close();
@@ -231,5 +319,16 @@ public class DruidProject{
 		} catch (IOException e) {
 			DruidPlugin.getPlugin().logException(e);
 		}
+	}
+
+	public boolean addDeprecate(String unitName, String featureName, String dUnitName, String dFeatureName, IResource resource, int offset, int length) {
+		DruidUnit unit = getUnit(unitName);if (unit == null) {
+			unit = new DruidUnit(unitName, this);
+			units.add(unit);
+		}
+		DruidFeature dFeature = getFeature(dUnitName, dFeatureName);
+		if (dFeature != null) unit.addDeprecates(featureName, dFeature, resource, offset, length);
+		else return false;
+		return true;
 	}
 }

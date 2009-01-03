@@ -25,6 +25,7 @@ import org.eclipse.jface.viewers.Viewer;
 
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.data.DruidDependency;
+import com.feup.contribution.druid.data.DruidDeprecate;
 import com.feup.contribution.druid.data.DruidFeature;
 import com.feup.contribution.druid.data.DruidMethod;
 import com.feup.contribution.druid.data.DruidProject;
@@ -59,6 +60,7 @@ public class DruidContentProvider implements IContentProvider, ITreeContentProvi
 			children.addAll(feature.getDependecies());
 			children.addAll(feature.getMethods());
 			children.addAll(feature.getTests());
+			children.addAll(feature.getDeprecates());
 			return children.toArray();
 		}
 		return new Object[0];
@@ -87,6 +89,10 @@ public class DruidContentProvider implements IContentProvider, ITreeContentProvi
 			DruidDependency dependency = (DruidDependency) element;
 			return dependency.getDependent();
 		}
+		if (element instanceof DruidDeprecate) {
+			DruidDeprecate deprecate = (DruidDeprecate) element;
+			return deprecate.getDeprecates();
+		}
 		if (element instanceof DruidTest) {
 			DruidTest test = (DruidTest) element;
 			return test.getFeature();
@@ -109,7 +115,7 @@ public class DruidContentProvider implements IContentProvider, ITreeContentProvi
 		}
 		if(element instanceof DruidFeature) {
 			DruidFeature feature = (DruidFeature) element;
-			return feature.getMethods().size() > 0 || feature.getDependecies().size() > 0 || feature.getTests().size() > 0;
+			return feature.getMethods().size() > 0 || feature.getDependecies().size() > 0 || feature.getTests().size() > 0 || feature.getDeprecates().size() > 0;
 		}
 		return false;
 	}

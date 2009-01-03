@@ -77,6 +77,8 @@ public class DruidTester {
 	}
 
 	private void copy(File source, File dest) throws IOException {
+		if (!source.getName().endsWith(".java") && !source.getName().endsWith(".aj")) return;
+		
 		InputStream in = new FileInputStream(source);
         OutputStream out = new FileOutputStream(dest);
         

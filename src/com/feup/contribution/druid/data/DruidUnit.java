@@ -19,6 +19,7 @@ package com.feup.contribution.druid.data;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 
@@ -26,7 +27,7 @@ public class DruidUnit {
 	private String name;
 	private ArrayList<DruidFeature> features;
 	private DruidProject project;
-	
+
 	public DruidUnit(String unitName, DruidProject project){
 		setName(unitName);
 		setProject(project);
@@ -78,15 +79,15 @@ public class DruidUnit {
 		return project;
 	}
 
-	public void addDepends(String featureName, DruidFeature dFeature) {
+	public void addDepends(String featureName, DruidFeature dFeature, IResource resource, int offset, int length) {
 		for (DruidFeature feature : features) {
 			if (feature.getName().equals(featureName)) {
-				feature.addDepends(dFeature);
+				feature.addDepends(dFeature, resource, offset, length);
 				return;
 			}
 		}
 		DruidFeature feature = new DruidFeature(featureName, this);
-		feature.addDepends(dFeature);
+		feature.addDepends(dFeature, resource, offset, length);
 		features.add(feature);
 	}
 
@@ -111,5 +112,29 @@ public class DruidUnit {
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	public void addDeprecates(String featureName, DruidFeature dFeature, IResource resource, int offset, int length) {
+		for (DruidFeature feature : features) {
+			if (feature.getName().equals(featureName)) {
+				feature.addDeprecates(dFeature, resource, offset, length);
+				return;
+			}
+		}
+		DruidFeature feature = new DruidFeature(featureName, this);
+		feature.addDeprecates(dFeature, resource, offset, length);
+		features.add(feature);		
+	}
+
+	public void removeDeprecatedBy() {
+		for (DruidFeature feature : features) {
+			feature.cleanDeprecatedBy();
+		}		
+	}
+
+	public void addDeprecatedBy() {
+		for (DruidFeature feature : features) {
+			feature.updateDeprecatedBy();
+		}
 	}
 }
