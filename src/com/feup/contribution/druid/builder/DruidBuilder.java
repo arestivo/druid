@@ -261,8 +261,10 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					}
 				}
 				if (annotation.getElementName().equals("Tests")) {
-					String unit = annotation.getMemberValuePairs()[0].getValue().toString();
-					String feature = annotation.getMemberValuePairs()[1].getValue().toString();
+					String value = annotation.getMemberValuePairs()[0].getValue().toString();
+					
+					String unit = extractUnit(value);
+					String feature = extractFeature(value);
 					tests.add(new Test(unitName, method, unit, feature, method.getResource(), annotation.getSourceRange().getOffset(), annotation.getSourceRange().getLength()));
 				}
 			}
@@ -277,6 +279,14 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			}
 			
 		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
+	}
+
+	private String extractFeature(String value) {
+		return value.substring(value.lastIndexOf('.') + 1);
+	}
+
+	private String extractUnit(String value) {
+		return value.substring(0,value.lastIndexOf('.'));
 	}
 
 	class DeltaVisitor implements IResourceDeltaVisitor {

@@ -24,6 +24,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.CLASS)
 public @interface Tests {
-	String unit();
-	String feature();
+	String value();
 }
