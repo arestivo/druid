@@ -189,13 +189,13 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					for (IAnnotation annotation2 : annotations) {
 						if (annotation2.getElementName().equals("Depends")) {
 							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
-							String unit = extractUnit(value);
+							String unit = extractUnit(value, unitName);
 							String feature = extractFeature(value);
 							dependencies.add(new Dependency(unitName, featureName, unit, feature, advice.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
 						if (annotation2.getElementName().equals("Deprecates")) {
 							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
-							String unit = extractUnit(value);
+							String unit = extractUnit(value, unitName);
 							String feature = extractFeature(value);
 							deprecates.add(new Deprecate(unitName, featureName, unit, feature, advice.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
@@ -252,13 +252,13 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					for (IAnnotation annotation2 : annotations) {
 						if (annotation2.getElementName().equals("Depends")) {
 							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
-							String unit = extractUnit(value);
+							String unit = extractUnit(value, unitName);
 							String feature = extractFeature(value);
 							dependencies.add(new Dependency(unitName, featureName, unit, feature,method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
 						if (annotation2.getElementName().equals("Deprecates")) {
 							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
-							String unit = extractUnit(value);
+							String unit = extractUnit(value, unitName);
 							String feature = extractFeature(value);
 							deprecates.add(new Deprecate(unitName, featureName, unit, feature,method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
 						}
@@ -267,7 +267,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 				if (annotation.getElementName().equals("Tests")) {
 					String value = annotation.getMemberValuePairs()[0].getValue().toString();
 					
-					String unit = extractUnit(value);
+					String unit = extractUnit(value, unitName);
 					String feature = extractFeature(value);
 					tests.add(new Test(unitName, method, unit, feature, method.getResource(), annotation.getSourceRange().getOffset(), annotation.getSourceRange().getLength()));
 				}
@@ -286,10 +286,12 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	}
 
 	private String extractFeature(String value) {
+		if (!value.contains(".")) return value;
 		return value.substring(value.lastIndexOf('.') + 1);
 	}
 
-	private String extractUnit(String value) {
+	private String extractUnit(String value, String unitName) {
+		if (!value.contains(".")) return unitName;
 		return value.substring(0,value.lastIndexOf('.'));
 	}
 
