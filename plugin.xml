@@ -91,4 +91,13 @@
             id="DRUID_CONTAINER"
             class="com.feup.contribution.druid.container.DruidClasspathContainerInitializer"/>
   </extension>
+
+  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+  	id="AnnotationProposalComputer"
+ 	name="Annotation Proposal Computer">
+    <javaCompletionProposalComputer 
+    	class="com.feup.contribution.druid.assist.DruidProposalComputer" 
+    	activate="true"></javaCompletionProposalComputer>
+  </extension>
+  
 </plugin>

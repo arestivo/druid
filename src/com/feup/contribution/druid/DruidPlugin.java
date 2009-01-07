@@ -126,6 +126,12 @@ public class DruidPlugin extends Plugin{
 		
 		return project;
 	}
+
+	public DruidProject getProject(String name) {
+		if (projects.containsKey(name)) return projects.get(name);
+		
+		return null;
+	}
 	
 	public void log(String message) {
 		stream.println(message);

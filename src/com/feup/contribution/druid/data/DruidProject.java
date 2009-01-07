@@ -371,4 +371,21 @@ public class DruidProject{
 		else return false;
 		return true;
 	}
+
+	public ArrayList<String> getFeatureNames(String unitName, String prefix) {
+		ArrayList<String> names = new ArrayList<String>();
+		Collection<DruidUnit> units = getUnits();
+		for (DruidUnit unit : units) {
+			Collection<DruidFeature> features = unit.getFeatures();
+			for (DruidFeature feature : features) {
+				String featureName = "";
+				if (unit.getName().equals(unitName))
+					featureName = feature.getName();
+				else
+					featureName = feature.getUnit().getName()+"."+feature.getName();
+				if (featureName.startsWith(prefix)) names.add(featureName);
+			}
+		}
+		return names;
+	}
 }
