@@ -14,7 +14,7 @@
  * along with drUID.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.feup.contribution.druid.util;
+package com.feup.contribution.druid.builder;
 
 import java.util.ArrayList;
 
@@ -28,24 +28,23 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMemberValuePair;
-import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 
-public class MethodAnnotation implements IAnnotation{
+public class AdviceAnnotation implements IAnnotation{
 	private String elementName;
-	private IJavaElement method;
+	private IJavaElement advice;
 	private String source;
 	private ArrayList<IMemberValuePair> valuePairs = new ArrayList<IMemberValuePair>();
 	private SourceRange sourceRange;
 	
 	@SuppressWarnings("restriction")
-	public MethodAnnotation(IMethod method, String elementName, String source, int offset) throws JavaModelException{
-		this.method = method;
+	public AdviceAnnotation(AdviceElement advice, String elementName, String source, int offset) throws JavaModelException{
+		this.advice = advice;
 		this.elementName = elementName;
 		this.source = source;
-		sourceRange = new SourceRange(method.getSourceRange().getOffset() + offset, source.length());
+		sourceRange = new SourceRange(advice.getSourceRange().getOffset() + offset, source.length());
 	}
 	
 	public String getElementName() {
@@ -69,7 +68,7 @@ public class MethodAnnotation implements IAnnotation{
 	}
 
 	public IJavaElement getAncestor(int ancestorType) {
-		return method;
+		return advice;
 	}
 
 	public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelException {
@@ -77,7 +76,7 @@ public class MethodAnnotation implements IAnnotation{
 	}
 
 	public IResource getCorrespondingResource() throws JavaModelException {
-		return method.getResource();
+		return advice.getResource();
 	}
 
 	public int getElementType() {
@@ -89,11 +88,11 @@ public class MethodAnnotation implements IAnnotation{
 	}
 
 	public IJavaModel getJavaModel() {
-		return method.getJavaModel();
+		return advice.getJavaModel();
 	}
 
 	public IJavaProject getJavaProject() {
-		return method.getJavaProject();
+		return advice.getJavaProject();
 	}
 
 	public IOpenable getOpenable() {
@@ -101,19 +100,19 @@ public class MethodAnnotation implements IAnnotation{
 	}
 
 	public IJavaElement getParent() {
-		return method;
+		return advice;
 	}
 
 	public IPath getPath() {
-		return method.getPath();
+		return advice.getPath();
 	}
 
 	public IJavaElement getPrimaryElement() {
-		return method;
+		return advice;
 	}
 
 	public IResource getResource() {
-		return method.getResource();
+		return advice.getResource();
 	}
 
 	public ISchedulingRule getSchedulingRule() {
@@ -121,7 +120,7 @@ public class MethodAnnotation implements IAnnotation{
 	}
 
 	public IResource getUnderlyingResource() throws JavaModelException {
-		return method.getResource();
+		return advice.getResource();
 	}
 
 	public boolean isReadOnly() {
@@ -134,7 +133,7 @@ public class MethodAnnotation implements IAnnotation{
 
 	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class adapter) {
-		return method.getAdapter(adapter);
+		return advice.getAdapter(adapter);
 	}
 
 	public String getSource() throws JavaModelException {

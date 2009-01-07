@@ -46,8 +46,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.feup.contribution.druid.DruidPlugin;
-import com.feup.contribution.druid.util.AdviceAnnotationExtractor;
-import com.feup.contribution.druid.util.MethodAnnotationExtractor;
 import com.feup.contribution.druid.util.MethodSignatureCreator;
 
 public class DruidBuilder extends IncrementalProjectBuilder {

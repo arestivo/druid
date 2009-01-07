@@ -14,7 +14,7 @@
  * along with drUID.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.feup.contribution.druid.util;
+package com.feup.contribution.druid.builder;
 
 import java.util.ArrayList;
 
@@ -28,23 +28,24 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModel;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMemberValuePair;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.JavaModelException;
 
-public class AdviceAnnotation implements IAnnotation{
+public class MethodAnnotation implements IAnnotation{
 	private String elementName;
-	private IJavaElement advice;
+	private IJavaElement method;
 	private String source;
 	private ArrayList<IMemberValuePair> valuePairs = new ArrayList<IMemberValuePair>();
 	private SourceRange sourceRange;
 	
 	@SuppressWarnings("restriction")
-	public AdviceAnnotation(AdviceElement advice, String elementName, String source, int offset) throws JavaModelException{
-		this.advice = advice;
+	public MethodAnnotation(IMethod method, String elementName, String source, int offset) throws JavaModelException{
+		this.method = method;
 		this.elementName = elementName;
 		this.source = source;
-		sourceRange = new SourceRange(advice.getSourceRange().getOffset() + offset, source.length());
+		sourceRange = new SourceRange(method.getSourceRange().getOffset() + offset, source.length());
 	}
 	
 	public String getElementName() {
@@ -68,7 +69,7 @@ public class AdviceAnnotation implements IAnnotation{
 	}
 
 	public IJavaElement getAncestor(int ancestorType) {
-		return advice;
+		return method;
 	}
 
 	public String getAttachedJavadoc(IProgressMonitor monitor) throws JavaModelException {
@@ -76,7 +77,7 @@ public class AdviceAnnotation implements IAnnotation{
 	}
 
 	public IResource getCorrespondingResource() throws JavaModelException {
-		return advice.getResource();
+		return method.getResource();
 	}
 
 	public int getElementType() {
@@ -88,11 +89,11 @@ public class AdviceAnnotation implements IAnnotation{
 	}
 
 	public IJavaModel getJavaModel() {
-		return advice.getJavaModel();
+		return method.getJavaModel();
 	}
 
 	public IJavaProject getJavaProject() {
-		return advice.getJavaProject();
+		return method.getJavaProject();
 	}
 
 	public IOpenable getOpenable() {
@@ -100,19 +101,19 @@ public class AdviceAnnotation implements IAnnotation{
 	}
 
 	public IJavaElement getParent() {
-		return advice;
+		return method;
 	}
 
 	public IPath getPath() {
-		return advice.getPath();
+		return method.getPath();
 	}
 
 	public IJavaElement getPrimaryElement() {
-		return advice;
+		return method;
 	}
 
 	public IResource getResource() {
-		return advice.getResource();
+		return method.getResource();
 	}
 
 	public ISchedulingRule getSchedulingRule() {
@@ -120,7 +121,7 @@ public class AdviceAnnotation implements IAnnotation{
 	}
 
 	public IResource getUnderlyingResource() throws JavaModelException {
-		return advice.getResource();
+		return method.getResource();
 	}
 
 	public boolean isReadOnly() {
@@ -133,7 +134,7 @@ public class AdviceAnnotation implements IAnnotation{
 
 	@SuppressWarnings("unchecked")
 	public Object getAdapter(Class adapter) {
-		return advice.getAdapter(adapter);
+		return method.getAdapter(adapter);
 	}
 
 	public String getSource() throws JavaModelException {

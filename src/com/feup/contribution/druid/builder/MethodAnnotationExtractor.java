@@ -14,7 +14,7 @@
  * along with drUID.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.feup.contribution.druid.util;
+package com.feup.contribution.druid.builder;
 
 import java.util.ArrayList;
 import java.util.regex.Matcher;
