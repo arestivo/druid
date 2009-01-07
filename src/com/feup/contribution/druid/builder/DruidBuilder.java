@@ -47,6 +47,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.util.AdviceAnnotationExtractor;
+import com.feup.contribution.druid.util.MethodAnnotationExtractor;
 import com.feup.contribution.druid.util.MethodSignatureCreator;
 
 public class DruidBuilder extends IncrementalProjectBuilder {
@@ -149,10 +150,10 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 
 	private void checkResourceAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException{
 		if (resource.getFileExtension().equals("java")) checkClassAnnotations(resource, dependencies, tests, deprecates);
-		if (resource.getFileExtension().equals("aj")) checkAspectAnnotations(resource, dependencies, deprecates);
+		if (resource.getFileExtension().equals("aj")) checkAspectAnnotations(resource, dependencies, tests, deprecates);
 	}
 
-	private void checkAspectAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Deprecate> deprecates) throws CoreException{
+	private void checkAspectAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException{
 		IFile file = (IFile) resource;
 		ICompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		ICompilationUnit mappedUnit = AJCompilationUnitManager.mapToAJCompilationUnit(cu);
@@ -168,6 +169,10 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					AdviceElement[] advices = aspect.getAdvice();
 					for (int i = 0; i < advices.length; i++) {
 						checkAdviceAnnotations(advices[i], dependencies, deprecates);
+					}
+					IMethod[] methods = aspect. getMethods();
+					for (IMethod method : methods) {
+						checkAspectMethodAnnotations(method, dependencies, deprecates);
 					}
 				}
 			}
@@ -216,6 +221,49 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
 	}
 
+	private void checkAspectMethodAnnotations(IMethod method, Vector<Dependency> dependencies, Vector<Deprecate> deprecates) throws CoreException {
+		try {
+			String unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();
+			String methodName = method.getElementName();
+			IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
+			
+			int annotationCount = 0;
+			for (IAnnotation annotation : annotations) {
+				if (annotation.getElementName().equals("Feature")) {
+					String featureName = annotation.getMemberValuePairs()[0].getValue().toString();
+					DruidPlugin.getPlugin().getProject(getJavaProject()).addFeature(unitName, method, methodName, featureName);
+					annotationCount++;
+					for (IAnnotation annotation2 : annotations) {
+						if (annotation2.getElementName().equals("Depends")) {
+							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
+							String unit = extractUnit(value, unitName);
+							String feature = extractFeature(value);
+							dependencies.add(new Dependency(unitName, featureName, unit, feature, method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
+						}
+						if (annotation2.getElementName().equals("Deprecates")) {
+							String value = annotation2.getMemberValuePairs()[0].getValue().toString();
+							String unit = extractUnit(value, unitName);
+							String feature = extractFeature(value);
+							deprecates.add(new Deprecate(unitName, featureName, unit, feature, method.getResource(), annotation2.getSourceRange().getOffset(), annotation2.getSourceRange().getLength()));
+						}
+					}
+				}
+			}
+			
+			if (annotationCount == 0) {
+				try {
+					IMarker marker = method.getResource().createMarker(NO_ANNOTATION_MARKER);
+					marker.setAttribute(IMarker.MESSAGE, "Method doesn't provide features");
+					marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
+					marker.setAttribute(IMarker.CHAR_START, method.getNameRange().getOffset());
+					marker.setAttribute(IMarker.CHAR_END, method.getNameRange().getOffset() + method.getNameRange().getLength());
+				} catch (Exception e) {DruidPlugin.getPlugin().logException(e);}
+			}
+			
+		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
+	}
+
+	
 	private void checkClassAnnotations(IResource resource, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException{
 		ICompilationUnit cu = (ICompilationUnit) JavaCore.create(resource);
 		IJavaElement je = (IJavaElement) JavaCore.create(resource);
@@ -237,7 +285,6 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	}
 
 	private void checkMethodAnnotations(IMethod method, Vector<Dependency> dependencies, Vector<Test> tests, Vector<Deprecate> deprecates) throws CoreException {
-		//if (!Flags.isPublic(method.getFlags())) return;
 		try {
 			String unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();
 			String methodName = MethodSignatureCreator.createSignature(method);
