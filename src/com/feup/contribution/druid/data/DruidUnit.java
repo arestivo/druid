@@ -23,6 +23,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 
+import com.feup.contribution.druid.DruidPlugin;
+
 public class DruidUnit {
 	private String name;
 	private ArrayList<DruidFeature> features;
@@ -79,16 +81,12 @@ public class DruidUnit {
 		return project;
 	}
 
-	public void addDepends(String featureName, DruidFeature dFeature, IResource resource, int offset, int length) {
+	public void addDepends(ArrayList<String> featureNames, DruidFeature dFeature, IResource resource, int offset, int length) {
 		for (DruidFeature feature : features) {
-			if (feature.getName().equals(featureName)) {
+			if (featureNames.contains(feature.getName())) {
 				feature.addDepends(dFeature, resource, offset, length);
-				return;
 			}
 		}
-		DruidFeature feature = new DruidFeature(featureName, this);
-		feature.addDepends(dFeature, resource, offset, length);
-		features.add(feature);
 	}
 
 	public DruidFeature getFeature(String featureName) {
@@ -114,16 +112,12 @@ public class DruidUnit {
 		return getName();
 	}
 
-	public void addDeprecates(String featureName, DruidFeature dFeature, IResource resource, int offset, int length) {
+	public void addDeprecates(ArrayList<String> featureNames, DruidFeature dFeature, IResource resource, int offset, int length) {
 		for (DruidFeature feature : features) {
-			if (feature.getName().equals(featureName)) {
+			if (featureNames.contains(feature.getName())) {
 				feature.addDeprecates(dFeature, resource, offset, length);
-				return;
 			}
 		}
-		DruidFeature feature = new DruidFeature(featureName, this);
-		feature.addDeprecates(dFeature, resource, offset, length);
-		features.add(feature);		
 	}
 
 	public void removeDeprecatedBy() {
@@ -136,5 +130,13 @@ public class DruidUnit {
 		for (DruidFeature feature : features) {
 			feature.updateDeprecatedBy();
 		}
+	}
+
+	public ArrayList<String> getFeaturesWithMethod(IMethod method) {
+		ArrayList<String> featureList = new ArrayList<String>();
+		for (DruidFeature feature : features)
+			for (DruidMethod dMethod : feature.getMethods())
+				if (dMethod.getMethod().equals(method)) featureList.add(feature.getName());
+		return featureList;
 	}
 }

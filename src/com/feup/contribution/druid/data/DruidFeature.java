@@ -81,6 +81,9 @@ public class DruidFeature {
 	}
 
 	public void addDepends(DruidFeature feature, IResource resource, int offset, int length) {
+		for (DruidDependency dependency : dependencies) {
+			if (dependency.getDependee() == feature) return;
+		}
 		dependencies.add(new DruidDependency(feature, this, resource, offset, length));
 	}
 
@@ -107,6 +110,9 @@ public class DruidFeature {
 	}
 
 	public void addDeprecates(DruidFeature feature, IResource resource, int offset, int length) {
+		for (DruidDeprecate deprecate : deprecates) {
+			if (deprecate.getDeprecated() == feature) return;
+		}
 		deprecates.add(new DruidDeprecate(feature, this, resource, offset, length));
 	}
 

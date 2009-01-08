@@ -45,6 +45,7 @@ import org.eclipse.ui.PlatformUI;
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.listeners.ProjectListener;
 import com.feup.contribution.druid.tester.DruidTester;
+import com.feup.contribution.druid.util.MethodSignatureCreator;
 
 public class DruidProject{
 	private ArrayList<DruidUnit> units;
@@ -99,27 +100,25 @@ public class DruidProject{
 		listeners.add(listener);
 	}
 
-	public void addFeature(String unitName, IMethod iMethod, String methodName, String featureName) {
+	public void addFeature(String unitName, IMethod method, String featureName) throws JavaModelException {
+		String methodSignature = MethodSignatureCreator.createSignature(method);
 		DruidUnit unit = getUnit(unitName);
 		if (unit == null) {
 			unit = new DruidUnit(unitName, this);
 			units.add(unit);
 		}
-		unit.addFeature(iMethod, methodName, featureName);
+		unit.addFeature(method, methodSignature, featureName);
 	}
 
 	public void removeAllFeatures() {
 		units.clear();
 	}
 
-	public boolean addDepends(String unitName, String featureName, String dUnitName, String dFeatureName, IResource resource, int offset, int length) {
+	public boolean addDepends(String unitName, ArrayList<String> featureNames, String dUnitName, String dFeatureName, IResource resource, int offset, int length) {
 		DruidUnit unit = getUnit(unitName);
-		if (unit == null) {
-			unit = new DruidUnit(unitName, this);
-			units.add(unit);
-		}
+		if (unit == null) return false;
 		DruidFeature dFeature = getFeature(dUnitName, dFeatureName);
-		if (dFeature != null) unit.addDepends(featureName, dFeature, resource, offset, length);
+		if (dFeature != null) unit.addDepends(featureNames, dFeature, resource, offset, length);
 		else return false;
 		return true;
 	}
@@ -130,7 +129,7 @@ public class DruidProject{
 		return unit.getFeature(featureName);
 	}
 
-	public boolean addTest(String unitName, IMethod method, String tUnitName, String tFeatureName) {
+	public boolean addTest(IMethod method, String tUnitName, String tFeatureName) {
 		DruidFeature tFeature = getFeature(tUnitName, tFeatureName);
 		if (tFeature != null) tFeature.addTests(method);
 		else return false;
@@ -361,13 +360,11 @@ public class DruidProject{
 		}
 	}
 
-	public boolean addDeprecate(String unitName, String featureName, String dUnitName, String dFeatureName, IResource resource, int offset, int length) {
-		DruidUnit unit = getUnit(unitName);if (unit == null) {
-			unit = new DruidUnit(unitName, this);
-			units.add(unit);
-		}
+	public boolean addDeprecate(String unitName, ArrayList<String> featureNames, String dUnitName, String dFeatureName, IResource resource, int offset, int length) {
+		DruidUnit unit = getUnit(unitName);
+		if (unit == null) return false;
 		DruidFeature dFeature = getFeature(dUnitName, dFeatureName);
-		if (dFeature != null) unit.addDeprecates(featureName, dFeature, resource, offset, length);
+		if (dFeature != null) unit.addDeprecates(featureNames, dFeature, resource, offset, length);
 		else return false;
 		return true;
 	}
@@ -387,5 +384,11 @@ public class DruidProject{
 			}
 		}
 		return names;
+	}
+
+	public ArrayList<String> getFeatureNames(String unitName, IMethod method) throws JavaModelException {
+		for (DruidUnit unit : units)
+			if (unit.getName().equals(unitName)) return unit.getFeaturesWithMethod(method);
+		return new ArrayList<String>();
 	}
 }

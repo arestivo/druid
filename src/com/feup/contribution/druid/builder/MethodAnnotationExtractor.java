@@ -20,13 +20,11 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 
 public class MethodAnnotationExtractor {
-	@SuppressWarnings("restriction")
 	public static IAnnotation[] extractAnnotations(IMethod method) throws JavaModelException{
 		String source = method.getSource();
 		Pattern pattern = Pattern.compile("@[a-zA-Z]*\\(.+?\\)");
