@@ -26,7 +26,8 @@ import org.eclipse.jdt.core.JavaModelException;
 
 public class MethodAnnotationExtractor {
 	public static IAnnotation[] extractAnnotations(IMethod method) throws JavaModelException{
-		String source = method.getSource();
+		String source = method.getSource().replaceAll("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)","");
+		
 		Pattern pattern = Pattern.compile("@[a-zA-Z]*\\(.+?\\)");
 		Matcher matcher = pattern.matcher(source);
 		ArrayList<MethodAnnotation> annotations = new ArrayList<MethodAnnotation>();
