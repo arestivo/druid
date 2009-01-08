@@ -18,14 +18,11 @@ package com.feup.contribution.druid.builder;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Vector;
 
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
-import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -36,23 +33,19 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.data.DruidProject;
-import com.feup.contribution.druid.util.MethodSignatureCreator;
 
 public class DruidBuilder extends IncrementalProjectBuilder {
 	private ArrayList<BuilderAnnotation> postBuildAnnotations = new ArrayList<BuilderAnnotation>();
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected IProject[] build(int kind, Map args, IProgressMonitor monitor)
 	throws CoreException {
@@ -71,14 +64,8 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		return null;
 	}
 
-	private void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-		delta.accept(new DeltaVisitor());
-		DruidPlugin.getPlugin().getProject(getJavaProject()).builderDone();
-	}
-
-
 	private void fullBuild(IProgressMonitor monitor) throws CoreException {
-		DruidPlugin.getPlugin().getProject(getJavaProject()).removeAllFeatures();
+		DruidPlugin.getPlugin().getProject(getJavaProject()).removeAllFeatures();		
 		getProject().accept(new ResourceVisitor());
 		processPostBuildAnnotations();
 		DruidPlugin.getPlugin().getProject(getJavaProject()).builderDone();
@@ -100,6 +87,8 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		IFile file = (IFile) resource;
 		ICompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		ICompilationUnit mappedUnit = AJCompilationUnitManager.mapToAJCompilationUnit(cu);
+
+		DruidMarker.removeBuildMarkers(resource);
 		
 		if (mappedUnit instanceof AJCompilationUnit) {
 			AJCompilationUnit ajUnit = (AJCompilationUnit) mappedUnit;
@@ -109,7 +98,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					IMethod[] methods = aspect.getMethods();
 					for (IMethod method : methods) {
 						IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
-						compileAnnotations(method, annotations);
+						if (!compileAnnotations(method, annotations) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
 					}
 				}
 			}
@@ -118,9 +107,8 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	
 	private void checkClassAnnotations(IResource resource) throws CoreException{
 		ICompilationUnit cu = (ICompilationUnit) JavaCore.create(resource);
-		IJavaElement je = (IJavaElement) JavaCore.create(resource);
-		
-		DruidPlugin.getPlugin().getProject(getJavaProject()).removeClass(cu.getPackageDeclarations()[0].getElementName(), je);
+
+		DruidMarker.removeBuildMarkers(resource);
 		
 		try {
 			IType[] types = cu.getTypes();
@@ -128,15 +116,17 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 				IMethod[] methods = type.getMethods();
 				for (IMethod method : methods) {
 					IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
-					compileAnnotations(method, annotations);
+					if (!compileAnnotations(method, annotations) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
 				}
 			}
 		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
 	}
 
-	private void compileAnnotations(IMethod method, IAnnotation[] annotations) throws JavaModelException {
+	private boolean compileAnnotations(IMethod method, IAnnotation[] annotations) throws JavaModelException {
 		DruidProject project = DruidPlugin.getPlugin().getProject(getJavaProject());
 	    String unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();		
+	    
+	    boolean hasFeatures = false;
 	    
 	    for (IAnnotation annotation : annotations) {
 	    	if (annotation.getMemberValuePairs().length != 1) continue;
@@ -144,10 +134,12 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		    String value = annotation.getMemberValuePairs()[0].getValue().toString();
 			String feature = extractFeature(value);
 		    
-			if (annotationType.equals("Feature")) project.addFeature(unitName, method, feature);
+			if (annotationType.equals("Feature")) {project.addFeature(unitName, method, feature); hasFeatures = true;}
 			if (annotationType.equals("Depends") || annotationType.equals("Tests") || annotationType.equals("Deprecates")) 
 				postBuildAnnotations.add(new BuilderAnnotation(annotation, method));
 		}
+	    
+	    return hasFeatures;
 	}
 
 	private void processPostBuildAnnotations() throws JavaModelException {

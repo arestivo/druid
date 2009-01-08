@@ -70,17 +70,6 @@ public class DruidProject{
 	public Collection<DruidUnit> getUnits(){
 		return units;
 	}
-
-	public void removeClass(String unitName, IJavaElement javaElement) {
-		ArrayList<DruidUnit> toRemove = new ArrayList<DruidUnit>();
-		for (DruidUnit unit : units) {
-			if (unit.getName().equals(unitName)) {
-				unit.removeClass(javaElement);
-				if (unit.isEmpty()) toRemove.add(unit);
-			}
-		}
-		for (DruidUnit unit : toRemove) units.remove(unit); 
-	}
 	
 	private DruidUnit getUnit(String unitName) {
 		for (DruidUnit unit : units) {
