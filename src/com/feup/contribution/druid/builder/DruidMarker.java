@@ -3,6 +3,7 @@ package com.feup.contribution.druid.builder;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IMethod;
 
 public class DruidMarker {
@@ -21,5 +22,13 @@ public class DruidMarker {
         marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
         marker.setAttribute(IMarker.CHAR_START, method.getNameRange().getOffset());
         marker.setAttribute(IMarker.CHAR_END, method.getNameRange().getOffset() + method.getNameRange().getLength());
+	}
+	
+	public static void addUndefinedFeatureMarker(IAnnotation annotation, String feature) throws CoreException {
+		IMarker marker = annotation.getResource().createMarker(NO_ANNOTATION_MARKER);
+        marker.setAttribute(IMarker.MESSAGE, "No such feature: " + feature);
+        marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+        marker.setAttribute(IMarker.CHAR_START, annotation.getNameRange().getOffset());
+        marker.setAttribute(IMarker.CHAR_END, annotation.getNameRange().getOffset() + annotation.getNameRange().getLength());		
 	}
 }
