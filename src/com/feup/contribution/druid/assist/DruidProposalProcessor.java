@@ -36,8 +36,6 @@ public class DruidProposalProcessor implements IContentAssistProcessor{
 					
 					while (line.substring(anStart,cursor).contains(",")) anStart = line.indexOf(',', anStart) + 1;
 					
-					DruidPlugin.getPlugin().log("AN: " + anStart);
-					
 					String prefix = line.substring(anStart, cursor);
 					prefix = prefix.trim();
 					
