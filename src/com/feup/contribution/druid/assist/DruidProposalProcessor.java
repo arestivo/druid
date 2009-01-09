@@ -34,7 +34,12 @@ public class DruidProposalProcessor implements IContentAssistProcessor{
 					int cursor = viewer.getSelectedRange().x - region.getOffset();
 					if (cursor < anStart) return NO_PROPOSALS;
 					
+					while (line.substring(anStart,cursor).contains(",")) anStart = line.indexOf(',', anStart) + 1;
+					
+					DruidPlugin.getPlugin().log("AN: " + anStart);
+					
 					String prefix = line.substring(anStart, cursor);
+					prefix = prefix.trim();
 					
 					IEditorInput editorInput = Workbench.getInstance().getActiveWorkbenchWindow().getActivePage().getActiveEditor().getEditorInput();
 					String name = editorInput.toString();

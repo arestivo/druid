@@ -17,12 +17,15 @@
 package com.feup.contribution.druid.builder;
 
 import java.util.ArrayList;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
+
+import com.feup.contribution.druid.DruidPlugin;
 
 public class MethodAnnotationExtractor {
 	public static IAnnotation[] extractAnnotations(IMethod method) throws JavaModelException{
@@ -36,29 +39,31 @@ public class MethodAnnotationExtractor {
 			Pattern namePattern = Pattern.compile("@[a-zA-Z]*");
 			Matcher nameMatcher = namePattern.matcher(annotationSource);
 			nameMatcher.find();
-			String annotationName = nameMatcher.group().substring(1); 
-			MethodAnnotation annotation = new MethodAnnotation(method, annotationName, annotationSource, source.indexOf(annotationSource));
-			addValuePairs(annotation, annotationSource);
-			annotations.add(annotation);
+			String annotationName = nameMatcher.group().substring(1);
+			
+			ArrayList<String> values = getValues(annotationSource);
+			for (String value : values){
+				MethodAnnotation annotation = new MethodAnnotation(method, annotationName, annotationSource, source.indexOf(annotationSource));
+				annotation.addValuePair("value", value);
+				annotations.add(annotation);
+			}
 		}
 		return annotations.toArray(new IAnnotation[annotations.size()]);
 	}
 
-	private static void addValuePairs(MethodAnnotation annotation, String annotationSource) throws JavaModelException {
-		Pattern pattern = Pattern.compile("([a-zA-Z]+)=\"(.*?)\"");
-		Matcher matcher = pattern.matcher(annotationSource);
-		while (matcher.find()){
-			String name = matcher.group(1);
-			String value = matcher.group(2);
-			annotation.addValuePair(name, value);
-		}
-		if (annotation.getMemberValuePairs().length == 0) {
-			Pattern patternNoName = Pattern.compile("\"(.*?)\"");
-			Matcher matcherNoName = patternNoName.matcher(annotationSource);
-			if (matcherNoName.find()){
-				String value = matcherNoName.group(1);
-				annotation.addValuePair("value", value);
+	private static ArrayList<String> getValues(String annotationSource) throws JavaModelException {
+		ArrayList<String> values = new ArrayList<String>();
+		Pattern patternNoName = Pattern.compile("\"(.*?)\"");
+		Matcher matcherNoName = patternNoName.matcher(annotationSource);
+		if (matcherNoName.find()){
+			String value = matcherNoName.group(1);
+			StringTokenizer st = new StringTokenizer(value, ",");
+			while (st.hasMoreTokens()){
+				String element = st.nextToken();
+				element = element.trim();
+				values.add(element);
 			}
 		}
+		return values;
 	}
 }

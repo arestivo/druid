@@ -142,7 +142,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	    return hasFeatures;
 	}
 
-	private void processPostBuildAnnotations() throws JavaModelException {
+	private void processPostBuildAnnotations() throws CoreException {
 		DruidProject project = DruidPlugin.getPlugin().getProject(getJavaProject());
 		for (BuilderAnnotation bAnnotation : postBuildAnnotations) {
 			IAnnotation annotation = bAnnotation.getAnnotation();
@@ -160,9 +160,12 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 
 			ArrayList<String> featureNames = project.getFeatureNames(unitName, method);
 			
-			if (annotationType.equals("Depends")) project.addDepends(unitName, featureNames, unit, feature, method.getResource(), offset, length);
-			if (annotationType.equals("Tests")) project.addTest(method, unit, feature);
-			if (annotationType.equals("Deprecates")) project.addDeprecate(unitName, featureNames, unit, feature, method.getResource(), offset, length);
+			if (annotationType.equals("Depends")) if (!project.addDepends(unitName, featureNames, unit, feature, method.getResource(), offset, length))
+				DruidMarker.addUndefinedFeatureMarker(annotation, feature);
+			if (annotationType.equals("Tests")) if (!project.addTest(method, unit, feature))
+				DruidMarker.addUndefinedFeatureMarker(annotation, feature);
+			if (annotationType.equals("Deprecates")) if (!project.addDeprecate(unitName, featureNames, unit, feature, method.getResource(), offset, length))
+				DruidMarker.addUndefinedFeatureMarker(annotation, feature);
 		}
 
 		postBuildAnnotations.clear();

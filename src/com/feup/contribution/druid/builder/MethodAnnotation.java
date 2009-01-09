@@ -40,7 +40,6 @@ public class MethodAnnotation implements IAnnotation{
 	private ArrayList<IMemberValuePair> valuePairs = new ArrayList<IMemberValuePair>();
 	private SourceRange sourceRange;
 	
-	@SuppressWarnings("restriction")
 	public MethodAnnotation(IMethod method, String elementName, String source, int offset) throws JavaModelException{
 		this.method = method;
 		this.elementName = elementName;
