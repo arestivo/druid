@@ -23,18 +23,15 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.eclipse.core.internal.resources.ProjectInfo;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPluginDescriptor;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ui.wizards.NewAnnotationWizardPage;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
@@ -42,9 +39,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 import com.feup.contribution.druid.container.DruidClasspathContainer;
 import com.feup.contribution.druid.data.DruidProject;
-import com.feup.contribution.druid.data.DruidUnit;
 import com.feup.contribution.druid.listeners.ProjectListener;
-import com.feup.contribution.druid.view.DruidView;
 
 @SuppressWarnings("deprecation")
 public class DruidPlugin extends Plugin{

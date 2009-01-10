@@ -25,8 +25,6 @@ import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
 
-import com.feup.contribution.druid.DruidPlugin;
-
 public class MethodAnnotationExtractor {
 	public static IAnnotation[] extractAnnotations(IMethod method) throws JavaModelException{
 		String source = method.getSource().replaceAll("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)","");

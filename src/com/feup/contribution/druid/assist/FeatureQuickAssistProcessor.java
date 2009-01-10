@@ -24,7 +24,6 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
 import org.eclipse.jdt.ui.text.java.IQuickAssistProcessor;
 
-import com.feup.contribution.druid.builder.DruidBuilder;
 import com.feup.contribution.druid.builder.DruidMarker;
 
 public class FeatureQuickAssistProcessor implements IQuickAssistProcessor{

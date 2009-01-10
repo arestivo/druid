@@ -23,8 +23,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 
-import com.feup.contribution.druid.DruidPlugin;
-
 public class DruidUnit {
 	private String name;
 	private ArrayList<DruidFeature> features;

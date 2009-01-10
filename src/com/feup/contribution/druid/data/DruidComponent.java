@@ -19,8 +19,6 @@ package com.feup.contribution.druid.data;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import com.feup.contribution.druid.DruidPlugin;
-
 public class DruidComponent {
 	private ArrayList<DruidUnit> componentUnits = new ArrayList<DruidUnit>();
 	private ArrayList<DruidComponent> dependants = new ArrayList<DruidComponent>();

@@ -11,12 +11,12 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.internal.Workbench;
 
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.data.DruidProject;
 
+@SuppressWarnings("restriction")
 public class DruidProposalProcessor implements IContentAssistProcessor{
     private static final ICompletionProposal[] NO_PROPOSALS = new ICompletionProposal[0];
     private static final IContextInformation[] NO_CONTEXTS = new IContextInformation[0];

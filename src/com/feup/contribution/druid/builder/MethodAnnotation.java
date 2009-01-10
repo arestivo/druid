@@ -18,7 +18,6 @@ package com.feup.contribution.druid.builder;
 
 import java.util.ArrayList;
 
-import org.eclipse.ajdt.core.javaelements.AdviceElement;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
