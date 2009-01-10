@@ -70,6 +70,7 @@ public class DotDiagramCreator {
 			
 			bw.write("}\n");
 			bw.close();
+			createPngFile();
 		} catch (FileNotFoundException e) {
 			DruidPlugin.getPlugin().logException(e);
 		} catch (IOException e) {
@@ -77,4 +78,11 @@ public class DotDiagramCreator {
 		}
 	}
 
+	private void createPngFile() throws IOException{
+		String workspacepath = Platform.getLocation().toOSString();
+		String unitpath = project.getIProject().getPath().toOSString();
+		
+		Runtime.getRuntime().exec(new String[]{"dot", workspacepath+unitpath+"/druid.dot", "-Tpng", "-o"+workspacepath+unitpath+"/druid.png"});
+	}
+	
 }
