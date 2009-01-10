@@ -19,6 +19,7 @@ package com.feup.contribution.druid.builder;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.aspectj.org.eclipse.jdt.core.IClassFile;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnit;
 import org.eclipse.ajdt.core.javaelements.AJCompilationUnitManager;
 import org.eclipse.ajdt.core.javaelements.AspectElement;
@@ -33,6 +34,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -88,6 +90,8 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		ICompilationUnit cu = AJCompilationUnitManager.INSTANCE.getAJCompilationUnit(file);
 		ICompilationUnit mappedUnit = AJCompilationUnitManager.mapToAJCompilationUnit(cu);
 
+		String unit = getUnitName(cu);
+		
 		DruidMarker.removeBuildMarkers(resource);
 		
 		if (mappedUnit instanceof AJCompilationUnit) {
@@ -98,7 +102,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					IMethod[] methods = aspect.getMethods();
 					for (IMethod method : methods) {
 						IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
-						if (!compileAnnotations(method, annotations) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
+						if (!compileAnnotations(method, annotations, unit) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
 					}
 				}
 			}
@@ -108,6 +112,8 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	private void checkClassAnnotations(IResource resource) throws CoreException{
 		ICompilationUnit cu = (ICompilationUnit) JavaCore.create(resource);
 
+		String unit = getUnitName(cu);
+		
 		DruidMarker.removeBuildMarkers(resource);
 		
 		try {
@@ -116,15 +122,22 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 				IMethod[] methods = type.getMethods();
 				for (IMethod method : methods) {
 					IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
-					if (!compileAnnotations(method, annotations) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
+					if (!compileAnnotations(method, annotations, unit) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
 				}
 			}
 		} catch (JavaModelException e) {DruidPlugin.getPlugin().logException(e);}
 	}
 
-	private boolean compileAnnotations(IMethod method, IAnnotation[] annotations) throws JavaModelException {
+	private String getUnitName(ICompilationUnit unit) throws JavaModelException {
+		String[] annotations = CompilationUnitAnnotationExtractor.extractAnnotations(unit, "Unit");
+		for (String name : annotations)
+			return name;
+		return null;
+	}
+
+	private boolean compileAnnotations(IMethod method, IAnnotation[] annotations, String unitName) throws JavaModelException {
 		DruidProject project = DruidPlugin.getPlugin().getProject(getJavaProject());
-	    String unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();		
+	    if (unitName == null) unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();		
 	    
 	    boolean hasFeatures = false;
 	    
@@ -136,7 +149,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		    
 			if (annotationType.equals("Feature")) {project.addFeature(unitName, method, feature); hasFeatures = true;}
 			if (annotationType.equals("Depends") || annotationType.equals("Tests") || annotationType.equals("Deprecates")) 
-				postBuildAnnotations.add(new BuilderAnnotation(annotation, method));
+				postBuildAnnotations.add(new BuilderAnnotation(annotation, method, unitName));
 		}
 	    
 	    return hasFeatures;
@@ -149,7 +162,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 			IMethod method = bAnnotation.getMethod();
 
 			String annotationType = annotation.getElementName();
-		    String unitName = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();		
+		    String unitName = bAnnotation.getUnitName();
 			
 		    String value = annotation.getMemberValuePairs()[0].getValue().toString();
 			String feature = extractFeature(value);
