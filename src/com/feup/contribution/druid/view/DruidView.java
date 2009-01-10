@@ -16,6 +16,7 @@
 
 package com.feup.contribution.druid.view;
 		
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
@@ -28,6 +29,9 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -44,6 +48,7 @@ import com.feup.contribution.druid.data.DruidMethod;
 import com.feup.contribution.druid.data.DruidProject;
 import com.feup.contribution.druid.data.DruidTest;
 import com.feup.contribution.druid.data.DruidUnit;
+import com.feup.contribution.druid.diagram.ImageCanvas;
 import com.feup.contribution.druid.listeners.ProjectListener;
 
 public class DruidView extends ViewPart implements ProjectListener{
@@ -54,12 +59,25 @@ public class DruidView extends ViewPart implements ProjectListener{
 	private Button detectButton;
 	private Label detectLabel;
 	
+	private ImageCanvas image;
+	private Button zoomInButton;
+	private Button fitButton;
+
+	private DruidProject lastProject;
+	
 	@Override
 	public void setFocus() {
 	}
 
 	public void projectChanged(final DruidProject project) {
+		image.getDisplay().asyncExec(new Runnable(){
+			@Override
+			public void run() {
+				imageRefresh(lastProject);
+			}
+		});
 		treeViewer.getTree().getDisplay().asyncExec(new Runnable(){
+			@Override
 			public void run() {
 				treeViewer.refresh();
 			}
@@ -74,7 +92,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 		treeViewer.setInput(DruidPlugin.getPlugin());
 
 		dialogLayout = new GridLayout();
-		dialogLayout.numColumns = 2;
+		dialogLayout.numColumns = 4;
 		
 		dialogComposite = new Composite(parent, SWT.NONE);
 		dialogComposite.setLayout(dialogLayout);
@@ -85,6 +103,17 @@ public class DruidView extends ViewPart implements ProjectListener{
 		detectButton = new Button(dialogComposite, SWT.PUSH);
 		detectButton.setText("Execute");
 		detectButton.setEnabled(false);
+
+		zoomInButton = new Button(dialogComposite, SWT.PUSH);
+		zoomInButton.setText("Zoom");
+
+		fitButton = new Button(dialogComposite, SWT.PUSH);
+		fitButton.setText("Fit");
+		
+		image = new ImageCanvas(dialogComposite);
+		GridData imageLayout = new GridData(GridData.FILL_BOTH);
+		imageLayout.horizontalSpan = 4;
+		image.setLayoutData(imageLayout);
 		
 		DruidPlugin.getPlugin().addProjectListener(this);
 		
@@ -100,13 +129,34 @@ public class DruidView extends ViewPart implements ProjectListener{
 			}
 		});
 		
+		zoomInButton.addListener(SWT.Selection, new Listener(){
+			@Override
+			public void handleEvent(Event arg0) {
+				image.zoomIn();
+			}
+			
+		});
+
+		fitButton.addListener(SWT.Selection, new Listener(){
+			@Override
+			public void handleEvent(Event arg0) {
+				image.fitCanvas();
+			}
+		});
+		
 		treeViewer.addSelectionChangedListener(new ISelectionChangedListener(){
 			@Override
 			public void selectionChanged(SelectionChangedEvent arg0) {
 				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
 				Object element = selection.getFirstElement();
-				if (element instanceof DruidProject) detectButton.setEnabled(true);
+				if (element instanceof DruidProject) {
+					detectButton.setEnabled(true);
+					lastProject = (DruidProject) element;
+					imageRefresh(lastProject);
+					image.fitCanvas();
+				}
 				else detectButton.setEnabled(false);
+				
 			}
 		});
 		
@@ -143,8 +193,14 @@ public class DruidView extends ViewPart implements ProjectListener{
 					treeViewer.setExpandedState(unit, !treeViewer.getExpandedState(unit));
 				}
 			}
-			
 		});
 	}
 
+	private void imageRefresh(DruidProject project) {
+		if (project==null) return;
+		String workspacepath = Platform.getLocation().toOSString();
+		String unitpath = project.getIProject().getPath().toOSString();
+
+		image.setImageData(new ImageData(workspacepath+unitpath+"/druid.png"));
+	}
 }

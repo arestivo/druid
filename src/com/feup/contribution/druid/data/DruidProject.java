@@ -73,10 +73,10 @@ public class DruidProject{
 	}
 
 	public void builderDone(){
+		new DotDiagramCreator(this).drawDiagram();
 		for (ProjectListener listener : listeners) {
 			listener.projectChanged(this);
 		}
-		new DotDiagramCreator(this).drawDiagram();
 	}
 	
 	public void addProjectListener(ProjectListener listener) {

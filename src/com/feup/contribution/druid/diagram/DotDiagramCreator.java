@@ -82,7 +82,10 @@ public class DotDiagramCreator {
 		String workspacepath = Platform.getLocation().toOSString();
 		String unitpath = project.getIProject().getPath().toOSString();
 		
-		Runtime.getRuntime().exec(new String[]{"dot", workspacepath+unitpath+"/druid.dot", "-Tpng", "-o"+workspacepath+unitpath+"/druid.png"});
+		Process p = Runtime.getRuntime().exec(new String[]{"dot", workspacepath+unitpath+"/druid.dot", "-Tpng", "-o"+workspacepath+unitpath+"/druid.png"});
+		try {
+			p.waitFor();
+		} catch (InterruptedException e) {}
 	}
 	
 }
