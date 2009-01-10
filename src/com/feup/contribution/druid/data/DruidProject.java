@@ -160,6 +160,7 @@ public class DruidProject{
 		monitor.worked(1);
 		int currentComponent = 1;
 		for (DruidComponent component : components) {
+			DruidPlugin.getPlugin().log("C: " + component.getUnits());
 			monitor.subTask(component.toString());
 			toCompile.add(component);
 		

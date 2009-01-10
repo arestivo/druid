@@ -29,15 +29,15 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
@@ -55,14 +55,14 @@ public class DruidView extends ViewPart implements ProjectListener{
 	private TreeViewer treeViewer;
 	private Composite dialogComposite;
 	private GridLayout dialogLayout;
-	
-	private Button detectButton;
-	private Label detectLabel;
-	
+		
 	private ImageCanvas image;
 	private Button zoomInButton;
 	private Button fitButton;
 
+	private Menu popupMenu;
+	private MenuItem detectItem;
+	
 	private DruidProject lastProject;
 	
 	@Override
@@ -86,24 +86,33 @@ public class DruidView extends ViewPart implements ProjectListener{
 
 	@Override
 	public void createPartControl(Composite parent) {
+		GridLayout layout = new GridLayout(3, true);
+		parent.setLayout(layout);
+		
 		treeViewer = new TreeViewer(parent);
 		treeViewer.setContentProvider(new DruidContentProvider());
 		treeViewer.setLabelProvider(new DruidLabelProvider());
 		treeViewer.setInput(DruidPlugin.getPlugin());
-
+		
+		popupMenu = new Menu(treeViewer.getTree());
+		treeViewer.getTree().setMenu(popupMenu);
+		detectItem = new MenuItem(popupMenu, SWT.PUSH);
+		detectItem.setText("Detect Interactions");
+		
+		GridData treeLayout = new GridData(GridData.FILL_BOTH);
+		treeViewer.getTree().setLayoutData(treeLayout);
+		
 		dialogLayout = new GridLayout();
-		dialogLayout.numColumns = 4;
+		dialogLayout.numColumns = 2;
 		
 		dialogComposite = new Composite(parent, SWT.NONE);
 		dialogComposite.setLayout(dialogLayout);
 
-		detectLabel = new Label(dialogComposite, SWT.NONE);
-		detectLabel.setText("Detect Interactions");
-
-		detectButton = new Button(dialogComposite, SWT.PUSH);
-		detectButton.setText("Execute");
-		detectButton.setEnabled(false);
-
+		GridData compositeLayout = new GridData(GridData.FILL_BOTH);
+		compositeLayout.horizontalSpan = 2;
+		compositeLayout.grabExcessHorizontalSpace = true;
+		dialogComposite.setLayoutData(compositeLayout);
+		
 		zoomInButton = new Button(dialogComposite, SWT.PUSH);
 		zoomInButton.setText("Zoom");
 
@@ -112,12 +121,12 @@ public class DruidView extends ViewPart implements ProjectListener{
 		
 		image = new ImageCanvas(dialogComposite);
 		GridData imageLayout = new GridData(GridData.FILL_BOTH);
-		imageLayout.horizontalSpan = 4;
+		imageLayout.horizontalSpan = 2;
 		image.setLayoutData(imageLayout);
 		
 		DruidPlugin.getPlugin().addProjectListener(this);
 		
-		detectButton.addListener(SWT.Selection, new Listener(){
+		detectItem.addListener(SWT.Selection, new Listener(){
 			@Override
 			public void handleEvent(Event evt) {
 				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
@@ -150,12 +159,12 @@ public class DruidView extends ViewPart implements ProjectListener{
 				IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
 				Object element = selection.getFirstElement();
 				if (element instanceof DruidProject) {
-					detectButton.setEnabled(true);
+					detectItem.setEnabled(true);
 					lastProject = (DruidProject) element;
 					imageRefresh(lastProject);
 					image.fitCanvas();
 				}
-				else detectButton.setEnabled(false);
+				else detectItem.setEnabled(false);
 				
 			}
 		});
