@@ -34,6 +34,9 @@ import org.eclipse.jdt.core.JavaModelException;
 
 import com.feup.contribution.druid.DruidPlugin;
 import com.feup.contribution.druid.data.DruidComponent;
+import com.feup.contribution.druid.data.DruidFeature;
+import com.feup.contribution.druid.data.DruidMethod;
+import com.feup.contribution.druid.data.DruidTest;
 import com.feup.contribution.druid.data.DruidUnit;
 
 public class DruidTester {
@@ -49,24 +52,37 @@ public class DruidTester {
 		new File("/tmp/druid/src/").mkdirs();
 		for (DruidComponent component : components) {
 			for (DruidUnit unit : component.getUnits()) {
-				String unitname = unit.getName();
-				unitname = unitname.replace('.', '/');
-				String workspacepath = Platform.getLocation().toOSString();
 				String unitpath = unit.getProject().getIProject().getPath().toOSString();
-				
-				new File("/tmp/druid/src/" + unitname + "/").mkdirs();
-				File dir = new File(workspacepath + unitpath + "/src/" + unitname);
-				String[] files = dir.list();
-				for (String file : files) {
-					File source = new File(workspacepath + unitpath + "/src/" + unitname, file); 
-					File dest = new File("/tmp/druid/src/" + unitname, file); 
-					try {
-						copy(source, dest);
-					} catch (IOException e) {
-						DruidPlugin.getPlugin().logException(e);
+				for (DruidFeature feature : unit.getFeatures()) {
+					for (DruidMethod method : feature.getMethods()) {
+						copyMethod(unitpath, method.getMethod());
+					}
+					for (DruidTest test : feature.getTests()) {
+						copyMethod(unitpath, test.getMethod());
 					}
 				}
 			}
+		}
+	}
+
+	private void copyMethod(String unitpath, IMethod method) {
+		String path = method.getPath().toOSString();
+
+		String newdir = path.substring(path.indexOf('/') + 1);
+		newdir = newdir.substring(newdir.indexOf('/'));
+		String newfile = newdir.substring(newdir.lastIndexOf('/') + 1);
+		newdir = newdir.substring(0, newdir.lastIndexOf('/') + 1);
+														
+		String workspacepath = Platform.getLocation().toOSString();
+
+		new File("/tmp/druid/" + newdir).mkdirs(); 
+
+		File source = new File(workspacepath + unitpath + newdir , newfile); 
+		File dest = new File("/tmp/druid/" + newdir, newfile); 
+		try {
+			copy(source, dest);
+		} catch (IOException e) {
+			DruidPlugin.getPlugin().logException(e);
 		}
 	}
 	
