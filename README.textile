@@ -4,6 +4,10 @@ drUID is an eclipse plugin that is being developed during the course of my
 PhD. drUID will allow AspectJ developers to easily detect interactions 
 between aspects.
 
+h3. Installation
+
+Soon ...
+
 h3. Some papers I published on the subject:
 
 * _"Disciplined Composition of Aspects using Tests"_ André Restivo, Ademar Aguiar, Linking Aspect Technology and Evolution (LATE'08), Brussels, April 2008
