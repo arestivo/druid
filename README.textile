@@ -6,7 +6,9 @@ between aspects.
 
 h3. Installation
 
-Soon ...
+* Copy plugin in the releases directory to the plugin directory of your eclipse installation.
+* sudo apt-get install junit
+* sudo apt-get install aspectj
 
 h3. Some papers I published on the subject:
 
