@@ -16,7 +16,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console;bundle-version="3.3.0",
  org.aspectj.ajde;bundle-version="1.6.1",
  org.eclipse.jdt.junit;bundle-version="3.4.0",
- com.abstratt.graphviz;bundle-version="1.1.4",
  org.eclipse.ui.ide;bundle-version="3.4.1"
 Bundle-ActivationPolicy: lazy
 Plugin-Class: com.feup.contribution.druid.DruidPlugin
