@@ -32,21 +32,21 @@ public class DotDiagramCreator {
 			bw.write("  node [ shape = \"component\", color = \"blue\"]\n");
 
 			for (DruidUnit unit : project.getUnits()) {
-				bw.write("    \"" + unit.getName() + "\"\n");
+				bw.write("    \"u:" + unit.getName() + "\" [label=\""+unit.getName()+"\"]\n");
 			}
 
 			bw.write("  node [ shape = \"egg\", color=\"green\"]\n");
 
 			for (DruidUnit unit : project.getUnits()) {
 				for (DruidFeature feature : unit.getFeatures()) {
-					bw.write("    \"" + feature.getName() + "\"\n");
+					bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" [label=\""+feature.getName()+"\"]\n");
 				}
 			}
 			
 			bw.write("  edge [ color = \"black\", arrowhead=\"dot\" ]\n");
 			for (DruidUnit unit : project.getUnits()) {
 				for (DruidFeature feature : unit.getFeatures()) {
-					bw.write("    \"" + unit.getName() + "\" -- \"" + feature.getName() + "\"\n");
+					bw.write("    \"u:" + unit.getName() + "\" -- \"" + unit.getName()+":"+feature.getName() + "\"\n");
 				}
 			}
 
@@ -54,16 +54,16 @@ public class DotDiagramCreator {
 			for (DruidUnit unit : project.getUnits()) {
 				for (DruidFeature feature : unit.getFeatures()) {
 					for (DruidDependency dependency : feature.getDependecies()) {
-						bw.write("    \"" + feature.getName() + "\" -- \"" + dependency.getDependee().getName() + "\"\n");
+						bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" -- \"" + dependency.getDependee().getUnit().getName()+":"+dependency.getDependee().getName() + "\"\n");
 					}
 				}
 			}
 
-			bw.write("  edge [ color = \"blue\", arrowhead=\"diamond\" ]\n");
+			bw.write("  edge [ color = \"orange\", arrowhead=\"diamond\" ]\n");
 			for (DruidUnit unit : project.getUnits()) {
 				for (DruidFeature feature : unit.getFeatures()) {
 					for (DruidDeprecate deprecate : feature.getDeprecates()) {
-						bw.write("    \"" + feature.getName() + "\" -- \"" + deprecate.getDeprecated().getName() + "\"\n");
+						bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" -- \"" + deprecate.getDeprecated().getUnit().getName()+":"+deprecate.getDeprecated().getName() + "\"\n");
 					}
 				}
 			}			
