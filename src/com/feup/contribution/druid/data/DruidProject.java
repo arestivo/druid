@@ -228,12 +228,13 @@ public class DruidProject{
 		try {
 			for (DruidUnit unit : units)
 				for (DruidFeature feature : unit.getFeatures()) {
-					for (DruidMethod method : feature.getMethods())
+					for (DruidMethod method : feature.getMethods()) {
 						method.getMethod().getResource().deleteMarkers(DEPENDENCY_DEPRECATED, true, IResource.DEPTH_INFINITE);
-	
+						method.getMethod().getResource().deleteMarkers(FEATURE_NOT_BROKEN, true, IResource.DEPTH_INFINITE);
+					}
+					
 					for(DruidTest test : feature.getTests()) {
 							test.getMethod().getResource().deleteMarkers(FEATURE_BROKEN, true, IResource.DEPTH_INFINITE);
-							test.getMethod().getResource().deleteMarkers(FEATURE_NOT_BROKEN, true, IResource.DEPTH_INFINITE);
 							test.getMethod().getResource().deleteMarkers(FAILED_TEST, true, IResource.DEPTH_INFINITE);
 					}
 				}
