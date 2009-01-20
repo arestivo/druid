@@ -102,7 +102,7 @@ public class DruidUnit {
 				dependsOn.add(druidDependency.getDependee().getUnit());
 			}
 		}
-		
+				
 		return dependsOn;
 	}
 	
@@ -136,10 +136,6 @@ public class DruidUnit {
 		for (DruidFeature feature : features)
 			for (DruidMethod dMethod : feature.getMethods())
 				if (dMethod.getMethod().equals(method)) featureList.add(feature.getName());
-		for (DruidFeature feature : features)
-			for (DruidTest test : feature.getTests()) {
-				if (test.getMethod().equals(method)) featureList.add(feature.getName());
-			}
 		return featureList;
 	}
 }
