@@ -24,12 +24,17 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -145,7 +150,7 @@ public class DruidProject{
 		return true;
 	}
 	
-	public void detectInteractionsBuild(IProgressMonitor monitor) {
+	public void detectInteractionsBuild(IProgressMonitor monitor) {		
 		ArrayList<DruidComponent> components = DruidComponent.getOrderedComponents(units);
 		ArrayList<DruidComponent> toCompile = new ArrayList<DruidComponent>();
 
@@ -179,21 +184,26 @@ public class DruidProject{
 							
 							try {
 								if (!result && component.getUnits().contains(druidUnit)) {
-									String message = "Unit: " + component.getUnits().get(0).getName() + " test failed for feature " + druidFeature;
+									String message = "Unit " + component.getUnits().get(0).getName() + ": test failed for feature " + druidFeature;
 									IMethod method = druidTest.getMethod();
 									addMarker(FAILED_TEST, message, method.getResource(), method.getNameRange().getOffset(), method.getNameRange().getLength());
 									monitor.done();
+									showErrorDialog("Failed Test", message, tester.getDetails());
 									return;
 								} else if (!druidFeature.isDeprecated() && !result) {
 									String message = "Unit " + component.getUnits().get(0).getName() + " breaks feature " + druidFeature;
 									IMethod method = druidTest.getMethod();
 									addMarker(FEATURE_BROKEN, message, method.getResource(), method.getNameRange().getOffset(), method.getNameRange().getLength());
 									monitor.done();
+									showErrorDialog("Feature Broken", message, "");
 									return;
 								} else if (druidFeature.isDeprecated() && result) {
 									String message = "Unit " + component.getUnits().get(0).getName() + " doesn't break feature " + druidFeature;
 									DruidDeprecate deprecate = druidFeature.getDeprecatedBy().get(0);
 									addMarker(FEATURE_NOT_BROKEN, message, deprecate.getResource(), deprecate.getOffset(), deprecate.getLength());
+									monitor.done();
+									showErrorDialog("Feature Not Broken", message, "");
+									return;
 								}
 							} catch (JavaModelException e) {
 								DruidPlugin.getPlugin().logException(e);
@@ -208,6 +218,15 @@ public class DruidProject{
 		monitor.done();
 	}
 
+	private void showErrorDialog(final String title, final String message, final String details) {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				MessageDialog.openError(getShell(), title, message + "\n\n" + details);
+			}
+		});
+	}
+
 	private void addMarker(String type, String message, IResource resource, int offset, int length) {
 		try {
 			IMarker marker = resource.createMarker(type);
@@ -217,8 +236,7 @@ public class DruidProject{
 			marker.setAttribute(IMarker.CHAR_END, offset + length);
 		} catch (CoreException e) {
 			DruidPlugin.getPlugin().logException(e);
-		}
-		
+		}		
 	}
 	
 	private void removeDeprecatedBy() {
@@ -263,7 +281,7 @@ public class DruidProject{
 			for (DruidFeature feature : druidUnit.getFeatures()) {
 				for (DruidDependency dependency : feature.getDependecies()) {
 					if (dependency.getDependee().isDeprecated()) {
-						String message = "Feature " + dependency.getDependee() + " deprecated by " + dependency.getDependee().getDeprecatedBy();
+						String message = "Feature " + dependency.getDependee() + " used by " + dependency.getDependent() + " deprecated by " + dependency.getDependee().getDeprecatedBy();
 
 						try {
 							IMarker marker = dependency.getResource().createMarker(DEPENDENCY_DEPRECATED);
@@ -271,6 +289,7 @@ public class DruidProject{
 							marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
 							marker.setAttribute(IMarker.CHAR_START, dependency.getOffset());
 							marker.setAttribute(IMarker.CHAR_END, dependency.getOffset() + dependency.getLength());
+							showErrorDialog("Feature Deprecated", message, "");
 						} catch (CoreException e) {
 							DruidPlugin.getPlugin().logException(e);
 						}

@@ -40,7 +40,8 @@ import com.feup.contribution.druid.data.DruidTest;
 import com.feup.contribution.druid.data.DruidUnit;
 
 public class DruidTester {
-
+	private String details;
+	
 	public void setUpTest(ArrayList<DruidComponent> components) {
 		try {
 			Runtime.getRuntime().exec("rm -Rf /tmp/druid").waitFor();
@@ -122,6 +123,7 @@ public class DruidTester {
 	}
 
 	public boolean test(IMethod method, String classpath) {
+		details = "";
 		try {
 			String unitname = method.getCompilationUnit().getPackageDeclarations()[0].getElementName();
 
@@ -135,9 +137,10 @@ public class DruidTester {
 			
 			String line;
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			while ((line = br.readLine()) != null)
+			while ((line = br.readLine()) != null){
+				details += line + "\n";
 				if (line.contains(new String("OK (1 test)"))) return true;
-			
+			}
 			p.waitFor();
 		} catch (JavaModelException e) {
 			DruidPlugin.getPlugin().logException(e);
@@ -147,6 +150,10 @@ public class DruidTester {
 			DruidPlugin.getPlugin().logException(e);
 		}
 		return false;
+	}
+
+	public String getDetails() {
+		return details.trim();
 	}
 
 }
