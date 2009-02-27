@@ -33,6 +33,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -40,7 +41,10 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 
 import com.feup.contribution.druid.DruidPlugin;
+import com.feup.contribution.druid.data.DruidFeature;
+import com.feup.contribution.druid.data.DruidMethod;
 import com.feup.contribution.druid.data.DruidProject;
+import com.feup.contribution.druid.data.DruidUnit;
 
 public class DruidBuilder extends IncrementalProjectBuilder {
 	private ArrayList<BuilderAnnotation> postBuildAnnotations = new ArrayList<BuilderAnnotation>();
@@ -68,7 +72,20 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 		DruidPlugin.getPlugin().getProject(getJavaProject()).removeAllFeatures();		
 		getProject().accept(new ResourceVisitor());
 		processPostBuildAnnotations();
+		propagateFeaturesToChildren();
 		DruidPlugin.getPlugin().getProject(getJavaProject()).builderDone();
+	}
+
+	private void propagateFeaturesToChildren() throws JavaModelException {
+		DruidProject project = DruidPlugin.getPlugin().getProject(getJavaProject());
+
+		for (DruidUnit unit : project.getUnits())
+			for (DruidFeature feature : unit.getFeatures())
+				for (DruidMethod method : feature.getMethods()) {
+					//DruidPlugin.getPlugin().log("M: " + method.getMethod());
+					IType type = (IType) method.getMethod().getParent();
+					//DruidPlugin.getPlugin().log("SCN: " + type.newTypeHierarchy(null));
+				}
 	}
 
 	public IJavaProject getJavaProject() {
@@ -100,6 +117,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 					IMethod[] methods = aspect.getMethods();
 					for (IMethod method : methods) {
 						IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
+						//TODO: Implement better way of finding if a method is a test
 						if (!compileAnnotations(method, annotations, unit) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
 					}
 				}
@@ -109,7 +127,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 	
 	private void checkClassAnnotations(IResource resource) throws CoreException{
 		ICompilationUnit cu = (ICompilationUnit) JavaCore.create(resource);
-
+		
 		String unit = getUnitName(cu);
 		
 		DruidMarker.removeBuildMarkers(resource);
@@ -120,6 +138,7 @@ public class DruidBuilder extends IncrementalProjectBuilder {
 				IMethod[] methods = type.getMethods();
 				for (IMethod method : methods) {
 					IAnnotation[] annotations = MethodAnnotationExtractor.extractAnnotations(method);
+					//TODO: Implement better way of finding if a method is a test
 					if (!compileAnnotations(method, annotations, unit) && !method.getElementName().startsWith("test")) DruidMarker.addNoAnnotationMarker(method);
 				}
 			}
