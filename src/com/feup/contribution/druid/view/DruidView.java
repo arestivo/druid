@@ -20,7 +20,10 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
+import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -52,7 +55,7 @@ import com.feup.contribution.druid.diagram.ImageCanvas;
 import com.feup.contribution.druid.listeners.ProjectListener;
 
 public class DruidView extends ViewPart implements ProjectListener{
-	private TreeViewer treeViewer;
+	private CheckboxTreeViewer treeViewer;
 	private Composite dialogComposite;
 	private GridLayout dialogLayout;
 		
@@ -80,6 +83,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 			@Override
 			public void run() {
 				treeViewer.refresh();
+				treeViewer.setCheckedElements (DruidPlugin.getPlugin().getSelectedUnits());
 			}
 		});
 	}
@@ -89,7 +93,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 		GridLayout layout = new GridLayout(3, true);
 		parent.setLayout(layout);
 		
-		treeViewer = new TreeViewer(parent);
+		treeViewer = new CheckboxTreeViewer(parent, SWT.CHECK);
 		treeViewer.setContentProvider(new DruidContentProvider());
 		treeViewer.setLabelProvider(new DruidLabelProvider());
 		treeViewer.setInput(DruidPlugin.getPlugin());
@@ -165,7 +169,19 @@ public class DruidView extends ViewPart implements ProjectListener{
 					image.fitCanvas();
 				}
 				else detectItem.setEnabled(false);
-				
+			}
+		});
+		
+		treeViewer.addCheckStateListener(new ICheckStateListener(){
+			@Override
+			public void checkStateChanged(CheckStateChangedEvent arg0) {
+				Object element = arg0.getElement();
+				if (element instanceof DruidUnit) {
+					DruidUnit unit = (DruidUnit) element;
+					unit.setSelected(treeViewer.getChecked(element));
+					unit.getProject().updateDiagram();
+					imageRefresh(lastProject);
+				} else treeViewer.setChecked(element, false);
 			}
 		});
 		
@@ -203,6 +219,7 @@ public class DruidView extends ViewPart implements ProjectListener{
 				}
 			}
 		});
+
 	}
 
 	private void imageRefresh(DruidProject project) {

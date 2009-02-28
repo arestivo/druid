@@ -27,6 +27,7 @@ public class DruidUnit {
 	private String name;
 	private ArrayList<DruidFeature> features;
 	private DruidProject project;
+	private boolean selected = true;
 
 	public DruidUnit(String unitName, DruidProject project){
 		setName(unitName);
@@ -137,5 +138,13 @@ public class DruidUnit {
 			for (DruidMethod dMethod : feature.getMethods())
 				if (dMethod.getMethod().equals(method)) featureList.add(feature.getName());
 		return featureList;
+	}
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
+	
+	public boolean isSelected() {
+		return selected;
 	}
 }

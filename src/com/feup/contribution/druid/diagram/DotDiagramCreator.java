@@ -32,12 +32,14 @@ public class DotDiagramCreator {
 			bw.write("  node [ shape = \"component\", color = \"blue\"]\n");
 
 			for (DruidUnit unit : project.getUnits()) {
+				if (unit.isSelected())
 				bw.write("    \"u:" + unit.getName() + "\" [label=\""+unit.getName()+"\"]\n");
 			}
 
 			bw.write("  node [ shape = \"egg\", color=\"green\"]\n");
 
 			for (DruidUnit unit : project.getUnits()) {
+				if (unit.isSelected())
 				for (DruidFeature feature : unit.getFeatures()) {
 					bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" [label=\""+feature.getName()+"\"]\n");
 				}
@@ -45,6 +47,7 @@ public class DotDiagramCreator {
 			
 			bw.write("  edge [ color = \"black\", arrowhead=\"dot\" ]\n");
 			for (DruidUnit unit : project.getUnits()) {
+				if (unit.isSelected())
 				for (DruidFeature feature : unit.getFeatures()) {
 					bw.write("    \"u:" + unit.getName() + "\" -- \"" + unit.getName()+":"+feature.getName() + "\"\n");
 				}
@@ -52,8 +55,10 @@ public class DotDiagramCreator {
 
 			bw.write("  edge [ color = \"green\", arrowhead=\"box\" ]\n");
 			for (DruidUnit unit : project.getUnits()) {
+				if (unit.isSelected())
 				for (DruidFeature feature : unit.getFeatures()) {
 					for (DruidDependency dependency : feature.getDependecies()) {
+						if (dependency.getDependee().getUnit().isSelected())
 						bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" -- \"" + dependency.getDependee().getUnit().getName()+":"+dependency.getDependee().getName() + "\"\n");
 					}
 				}
@@ -61,8 +66,10 @@ public class DotDiagramCreator {
 
 			bw.write("  edge [ color = \"orange\", arrowhead=\"diamond\" ]\n");
 			for (DruidUnit unit : project.getUnits()) {
+				if (unit.isSelected())
 				for (DruidFeature feature : unit.getFeatures()) {
 					for (DruidDeprecate deprecate : feature.getDeprecates()) {
+						if (deprecate.getDeprecated().getUnit().isSelected())
 						bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" -- \"" + deprecate.getDeprecated().getUnit().getName()+":"+deprecate.getDeprecated().getName() + "\"\n");
 					}
 				}

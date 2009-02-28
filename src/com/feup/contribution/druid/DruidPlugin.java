@@ -39,6 +39,7 @@ import org.eclipse.ui.console.MessageConsoleStream;
 
 import com.feup.contribution.druid.container.DruidClasspathContainer;
 import com.feup.contribution.druid.data.DruidProject;
+import com.feup.contribution.druid.data.DruidUnit;
 import com.feup.contribution.druid.listeners.ProjectListener;
 
 @SuppressWarnings("deprecation")
@@ -152,5 +153,20 @@ public class DruidPlugin extends Plugin{
 			DruidProject project = enumeration.nextElement();
 			project.addProjectListener(listener);
 		}
+	}
+
+	public Object[] getSelectedUnits() {
+		Collection<DruidProject> projects = getProjects();
+		log("Projects: " + projects.size());
+		
+		ArrayList<DruidUnit> ret = new ArrayList<DruidUnit>();
+		for (DruidProject project : projects) {
+			Collection<DruidUnit> units = project.getUnits();
+			for (DruidUnit unit : units) {
+				if (unit.isSelected()) ret.add(unit);
+			}
+		}
+		log("Units: " + ret.size());
+		return ret.toArray();
 	}
 }
