@@ -41,6 +41,10 @@ public class DotDiagramCreator {
 			for (DruidUnit unit : project.getUnits()) {
 				if (unit.isSelected())
 				for (DruidFeature feature : unit.getFeatures()) {
+					if (feature.getTests().size() == 0) 
+						bw.write("  node [ shape = \"egg\", color=\"red\"]\n");
+					else
+						bw.write("  node [ shape = \"egg\", color=\"green\"]\n");
 					bw.write("    \"" + unit.getName()+":"+feature.getName() + "\" [label=\""+feature.getName()+"\"]\n");
 				}
 			}
