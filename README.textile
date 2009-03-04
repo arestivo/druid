@@ -6,6 +6,8 @@ between aspects.
 
 h3. Installation
 
+Currently on works in Linux. Tested on Ubuntu 8.10
+
 * Copy plugin in the releases directory to the plugin directory of your eclipse installation.
 * sudo apt-get install junit
 * sudo apt-get install aspectj
